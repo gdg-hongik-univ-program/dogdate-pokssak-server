@@ -12,8 +12,8 @@ import java.util.Map;
 @ControllerAdvice// 모든 컨트롤러에서 발생하는 예외를 한곳에서 처리
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DuplicateMemberIdException.class)
-    public ResponseEntity<String> handleDuplicateMemberIdException(DuplicateMemberIdException ex) {
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public ResponseEntity<String> handleDuplicateNicknameException(DuplicateNicknameException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT); // 409 Conflict
     }
 
@@ -22,8 +22,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST); // 400 Bad Request
     }
 
-    @ExceptionHandler(MemberNotFoundException.class)
-    public ResponseEntity<String> handleMemberNotFoundException(MemberNotFoundException ex) {
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
     }
 
