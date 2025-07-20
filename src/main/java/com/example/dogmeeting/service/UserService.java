@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface UserService {
     Long joinUser(UserJoinRequest request);
-    User loginUser(String nickname, String password);
+    User loginUser(String userId, String password);
     UserResponse getUserById(Long userId);
     UserResponse getUserByNickname(String nickname);
     List<UserResponse> getPotentialMatches(Long userId);

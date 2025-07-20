@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody UserLoginRequest request) {
-        User loggedInUser = userService.loginUser(request.getNickname(), request.getPassword());
+        User loggedInUser = userService.loginUser(request.getUserId(), request.getPassword());
         return new ResponseEntity<>("로그인 성공! 환영합니다, " + loggedInUser.getNickname() + "님!", HttpStatus.OK);
     }
 

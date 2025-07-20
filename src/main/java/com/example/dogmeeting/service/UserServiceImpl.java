@@ -6,6 +6,7 @@ import com.example.dogmeeting.entity.User;
 import com.example.dogmeeting.exception.DuplicateNicknameException;
 import com.example.dogmeeting.exception.UserNotFoundException;
 import com.example.dogmeeting.exception.PasswordMismatchException;
+import com.example.dogmeeting.exception.DuplicateUserIdException;
 import com.example.dogmeeting.repository.UserRepository;
 import com.example.dogmeeting.service.RegionService;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,20 @@ public class UserServiceImpl implements UserService {
             throw new PasswordMismatchException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
+        // userId 중복 체크
+        userRepository.findByUserId(request.getUserId())
+                .ifPresent(u -> {
+                    throw new DuplicateUserIdException("이미 사용 중인 아이디입니다.");
+                });
+
+        // nickname 중복 체크
         userRepository.findByNickname(request.getNickname())
                 .ifPresent(u -> {
                     throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
                 });
 
         User newUser = User.builder()
+                .userId(request.getUserId())
                 .nickname(request.getNickname())
                 .password(request.getPassword())
                 .gender(request.getGender())
@@ -52,9 +61,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User loginUser(String nickname, String password) {
-        User user = userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new UserNotFoundException("닉네임을 찾을 수 없습니다."));
+    public User loginUser(String userId, String password) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserNotFoundException("아이디를 찾을 수 없습니다."));
 
         if (!user.checkPassword(passwordEncoder, password)) {
             throw new PasswordMismatchException("비밀번호가 일치하지 않습니다.");

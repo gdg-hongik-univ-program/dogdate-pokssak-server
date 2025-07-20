@@ -20,6 +20,9 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
+    @Column(name = "login_id", nullable = false, unique = true)
+    private String userId;  // 사용자가 설정하는 로그인용 아이디
+
     @Column(nullable = false)
     private String password;
 
