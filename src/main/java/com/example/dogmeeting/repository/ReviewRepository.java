@@ -18,6 +18,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     
     List<Review> findByMatch(Match match);
     
+    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r " +
+           "JOIN r.match m WHERE m.user1.id = :userId OR m.user2.id = :userId")
+    double findAverageRatingByUserId(@Param("userId") Long userId);
+    
     List<Review> findByReviewer(User reviewer);
     
     @Query("SELECT AVG(r.rating) FROM Review r JOIN r.match m WHERE " +

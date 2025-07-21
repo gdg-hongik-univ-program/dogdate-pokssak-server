@@ -64,18 +64,19 @@ public class User {
         return passwordEncoder.matches(rawPassword, this.password);
     }
 
-    public void updateProfile(String nickname, String gender, String city, String district) {
-        this.nickname = nickname;
-        this.gender = gender;
-        this.city = city;
-        this.district = district;
-    }
-
     // 지역 정보를 문자열로 반환하는 헬퍼 메서드
     public String getFullRegion() {
         if (district != null && !district.trim().isEmpty()) {
             return city + " " + district;
         }
         return city;
+    }
+    
+    // 프로필 업데이트 메서드
+    public void updateProfile(String nickname, String gender, String city, String district) {
+        this.nickname = nickname;
+        this.gender = gender;
+        this.city = city;
+        this.district = district;
     }
 } 

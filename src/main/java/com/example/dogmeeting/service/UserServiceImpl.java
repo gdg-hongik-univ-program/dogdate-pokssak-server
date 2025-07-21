@@ -2,20 +2,30 @@ package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.UserJoinRequest;
 import com.example.dogmeeting.dto.UserResponse;
+import com.example.dogmeeting.dto.UserProfileResponse;
+import com.example.dogmeeting.dto.UserUpdateRequest;
+import com.example.dogmeeting.dto.UserRankingResponse;
+import com.example.dogmeeting.dto.DogResponse;
 import com.example.dogmeeting.entity.User;
 import com.example.dogmeeting.exception.DuplicateNicknameException;
 import com.example.dogmeeting.exception.UserNotFoundException;
 import com.example.dogmeeting.exception.PasswordMismatchException;
 import com.example.dogmeeting.exception.DuplicateUserIdException;
 import com.example.dogmeeting.repository.UserRepository;
+import com.example.dogmeeting.repository.MatchRepository;
+import com.example.dogmeeting.repository.ReviewRepository;
+import com.example.dogmeeting.repository.SwipeRepository;
 import com.example.dogmeeting.service.RegionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional(readOnly = true)
@@ -25,6 +35,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RegionService regionService;
+    private final MatchRepository matchRepository;
+    private final ReviewRepository reviewRepository;
+    private final SwipeRepository swipeRepository;
 
     @Override
     @Transactional
@@ -114,5 +127,108 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
         
         user.updateProfile(nickname, gender, city, district);
+    }
+
+    // 홈 화면용 메서드들 구현
+    @Override
+    public UserProfileResponse getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        // 강아지 정보 가져오기
+        List<DogResponse> dogs = user.getDogs().stream()
+                .map(DogResponse::from)
+                .collect(Collectors.toList());
+        
+        // 매칭 수 계산
+        int matchCount = matchRepository.countByUser1IdOrUser2Id(userId, userId);
+        
+        // 좋아요 수 계산 (새로운 랭킹 기준)
+        int likeCount = swipeRepository.countLikesByUserId(userId);
+        
+        // 평균 평점 계산
+        double averageRating = reviewRepository.findAverageRatingByUserId(userId);
+        
+        // 랭킹 점수 계산 (좋아요 수 기반)
+        int rankingScore = likeCount;  // 좋아요 수가 곧 랭킹 점수
+        
+        return UserProfileResponse.builder()
+                .id(user.getId())
+                .userId(user.getUserId())
+                .nickname(user.getNickname())
+                .gender(user.getGender())
+                .city(user.getCity())
+                .district(user.getDistrict())
+                .createdAt(user.getCreatedAt())
+                .dogs(dogs)
+                .matchCount(matchCount)
+                .averageRating(averageRating)
+                .rankingScore(rankingScore)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updateUserProfile(Long userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        user.updateProfile(request.getNickname(), request.getGender(), 
+                          request.getCity(), request.getDistrict());
+        
+        return getUserProfile(userId);
+    }
+
+    @Override
+    public List<UserRankingResponse> getUserRanking(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<User> users = userRepository.findAll(pageable).getContent();
+        
+        List<UserRankingResponse> rankings = users.stream()
+                .map(user -> {
+                    int matchCount = matchRepository.countByUser1IdOrUser2Id(user.getId(), user.getId());
+                    int likeCount = swipeRepository.countLikesByUserId(user.getId());
+                    double averageRating = reviewRepository.findAverageRatingByUserId(user.getId());
+                    int rankingScore = likeCount;  // 좋아요 수가 곧 랭킹 점수
+                    
+                    // 대표 강아지 정보
+                    String mainDogPhotoUrl = user.getDogs().isEmpty() ? null : user.getDogs().get(0).getPhotoUrl();
+                    String mainDogName = user.getDogs().isEmpty() ? null : user.getDogs().get(0).getName();
+                    
+                    return UserRankingResponse.builder()
+                            .id(user.getId())
+                            .nickname(user.getNickname())
+                            .city(user.getCity())
+                            .district(user.getDistrict())
+                            .matchCount(matchCount)
+                            .averageRating(averageRating)
+                            .rankingScore(rankingScore)
+                            .mainDogPhotoUrl(mainDogPhotoUrl)
+                            .mainDogName(mainDogName)
+                            .build();
+                })
+                .sorted((a, b) -> Integer.compare(b.getRankingScore(), a.getRankingScore()))
+                .collect(Collectors.toList());
+        
+        // 순위 부여
+        return IntStream.range(0, rankings.size())
+                .mapToObj(i -> UserRankingResponse.builder()
+                        .id(rankings.get(i).getId())
+                        .nickname(rankings.get(i).getNickname())
+                        .city(rankings.get(i).getCity())
+                        .district(rankings.get(i).getDistrict())
+                        .matchCount(rankings.get(i).getMatchCount())
+                        .averageRating(rankings.get(i).getAverageRating())
+                        .rankingScore(rankings.get(i).getRankingScore())
+                        .rank(i + 1 + (page * size))
+                        .mainDogPhotoUrl(rankings.get(i).getMainDogPhotoUrl())
+                        .mainDogName(rankings.get(i).getMainDogName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserProfileResponse getUserDetailProfile(Long targetUserId) {
+        return getUserProfile(targetUserId);
     }
 } 
