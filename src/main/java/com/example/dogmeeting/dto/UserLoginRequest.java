@@ -10,10 +10,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberLoginRequest {
-    @NotBlank(message = "아이디")
-    private String memberId;
+public class UserLoginRequest {
+    
+    @NotBlank(message = "아이디를 입력해주세요.")
+    private String userId;  // 로그인용 아이디
 
-    @NotBlank(message = "비밀번호")
+    @NotBlank(message = "비밀번호를 입력해주세요.")
     private String password;
-}
+} 

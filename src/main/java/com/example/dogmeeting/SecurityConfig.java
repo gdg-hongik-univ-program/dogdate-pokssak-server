@@ -22,7 +22,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // API 서버에서는 일반적으로 비활성화
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/users/signup", "/auth/users/login").permitAll() // 회원가입, 로그인 경로는 허용
+                        .requestMatchers("/api/users/signup", "/api/users/login", "/api/regions/**").permitAll() // 회원가입, 로그인, 지역 조회 경로는 허용
+                        .requestMatchers("/api/dogs/**").permitAll() // 임시로 강아지 관련 모든 API 허용 (S3 테스트용)
+                        .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 접근 허용
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증된 사용자만 접근 허용
                 );
         return http.build();
