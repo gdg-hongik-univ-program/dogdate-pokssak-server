@@ -3,6 +3,7 @@ package com.example.dogmeeting.service;
 import com.example.dogmeeting.dto.DogCreateRequest;
 import com.example.dogmeeting.dto.DogResponse;
 import com.example.dogmeeting.dto.DogRankingResponse;
+import com.example.dogmeeting.dto.DogProfileResponse;
 import com.example.dogmeeting.entity.Dog;
 import com.example.dogmeeting.entity.User;
 import com.example.dogmeeting.exception.UserNotFoundException;
@@ -52,6 +53,40 @@ public class DogServiceImpl implements DogService {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
         return DogResponse.from(dog);
+    }
+
+    @Override
+    public DogProfileResponse getDogProfile(Long dogId) {
+        Dog dog = dogRepository.findById(dogId)
+                .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
+        
+        User owner = dog.getUser();
+        
+        // 좋아요 수 계산 (해당 강아지의 주인이 받은 좋아요)
+        int likeCount = swipeRepository.countByToUserAndLike(owner, true);
+        
+        // 순위는 임시로 0 (좋아요 수 기준 랭킹 시스템과 연계 시 구현)
+        int rank = 0;
+        
+        // 칭호는 임시로 빈 리스트 (Title 시스템과 연계 시 구현)
+        List<String> titles = List.of();
+        
+        return DogProfileResponse.builder()
+                .dogId(dog.getId())
+                .name(dog.getName())
+                .breed(dog.getBreed())
+                .age(dog.getAge())
+                .description(dog.getDescription())
+                .photoUrl(dog.getPhotoUrl())
+                .ownerId(owner.getId())
+                .ownerNickname(owner.getNickname())
+                .ownerGender(owner.getGender())
+                .ownerCity(owner.getCity())
+                .ownerDistrict(owner.getDistrict())
+                .likeCount(likeCount)
+                .rank(rank)
+                .titles(titles)
+                .build();
     }
 
     @Override

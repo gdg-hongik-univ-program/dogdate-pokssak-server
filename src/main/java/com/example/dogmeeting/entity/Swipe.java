@@ -31,10 +31,10 @@ public class Swipe {
 
     @Column(name = "is_like", nullable = false)
     @Builder.Default
-    private Boolean isLike = false;  // 좋아요 여부
+    private Boolean like = false;  // 좋아요 여부
 
     @Column(name = "liked_at")
-    private LocalDateTime likedAt;   // 좋아요 누른 시간 (선택적)
+    private LocalDateTime likeAt;   // 좋아요 누른 시간 (선택적)
 
     @PrePersist
     protected void onCreate() {
@@ -45,13 +45,13 @@ public class Swipe {
     
     // 좋아요 토글 메서드
     public void toggleLike() {
-        this.isLike = !this.isLike;
-        this.likedAt = this.isLike ? LocalDateTime.now() : null;
+        this.like = !this.like;
+        this.likeAt = this.like ? LocalDateTime.now() : null;
     }
     
     // 좋아요 설정 메서드
     public void setLike(boolean like) {
-        this.isLike = like;
-        this.likedAt = like ? LocalDateTime.now() : null;
+        this.like = like;
+        this.likeAt = like ? LocalDateTime.now() : null;
     }
 } 
