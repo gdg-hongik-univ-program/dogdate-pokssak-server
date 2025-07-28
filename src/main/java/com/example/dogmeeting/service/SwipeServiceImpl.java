@@ -83,13 +83,13 @@ public class SwipeServiceImpl implements SwipeService {
             // 기존 스와이프가 있으면 좋아요 상태만 토글
             Swipe swipe = existingSwipe.get();
             swipe.toggleLike();
-            return swipe.getIsLike();
+            return swipe.getLike();
         } else {
             // 스와이프가 없으면 새로 생성하면서 좋아요 표시
             Swipe newSwipe = Swipe.builder()
                     .fromUser(fromUser)
                     .toUser(toUser)
-                    .isLike(true)
+                    .like(true)
                     .build();
             newSwipe.setLike(true); // 좋아요 시간 설정
             swipeRepository.save(newSwipe);
@@ -105,6 +105,6 @@ public class SwipeServiceImpl implements SwipeService {
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
         Optional<Swipe> swipe = swipeRepository.findByFromUserAndToUser(fromUser, toUser);
-        return swipe.map(Swipe::getIsLike).orElse(false);
+        return swipe.map(Swipe::getLike).orElse(false);
     }
 } 

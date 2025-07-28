@@ -3,12 +3,14 @@ package com.example.dogmeeting.service;
 import com.example.dogmeeting.dto.DogCreateRequest;
 import com.example.dogmeeting.dto.DogResponse;
 import com.example.dogmeeting.dto.DogRankingResponse;
+import com.example.dogmeeting.dto.DogProfileResponse;
 
 import java.util.List;
 
 public interface DogService {
     Long createDog(Long userId, DogCreateRequest request);
     DogResponse getDogById(Long dogId);
+    DogProfileResponse getDogProfile(Long dogId);
     List<DogResponse> getDogsByUserId(Long userId);
     void updateDog(Long dogId, DogCreateRequest request);
     void updateDogImage(Long dogId, String imageUrl);

@@ -36,8 +36,6 @@ public class Match {
     @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoom> chatRooms;
 
-    @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews;
 
     @PrePersist
     protected void onCreate() {

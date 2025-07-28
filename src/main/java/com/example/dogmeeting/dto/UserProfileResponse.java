@@ -22,6 +22,5 @@ public class UserProfileResponse {
     private LocalDateTime createdAt;
     private List<DogResponse> dogs;
     private int matchCount;          // 매칭 수
-    private double averageRating;    // 평균 평점
     private int rankingScore;        // 랭킹 점수
 } 

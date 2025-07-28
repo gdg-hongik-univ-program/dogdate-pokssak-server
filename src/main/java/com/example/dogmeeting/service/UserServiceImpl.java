@@ -13,7 +13,6 @@ import com.example.dogmeeting.exception.PasswordMismatchException;
 import com.example.dogmeeting.exception.DuplicateUserIdException;
 import com.example.dogmeeting.repository.UserRepository;
 import com.example.dogmeeting.repository.MatchRepository;
-import com.example.dogmeeting.repository.ReviewRepository;
 import com.example.dogmeeting.repository.SwipeRepository;
 import com.example.dogmeeting.service.RegionService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,6 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RegionService regionService;
     private final MatchRepository matchRepository;
-    private final ReviewRepository reviewRepository;
     private final SwipeRepository swipeRepository;
 
     @Override
@@ -146,9 +144,6 @@ public class UserServiceImpl implements UserService {
         // 좋아요 수 계산 (새로운 랭킹 기준)
         int likeCount = swipeRepository.countLikesByUserId(userId);
         
-        // 평균 평점 계산
-        double averageRating = reviewRepository.findAverageRatingByUserId(userId);
-        
         // 랭킹 점수 계산 (좋아요 수 기반)
         int rankingScore = likeCount;  // 좋아요 수가 곧 랭킹 점수
         
@@ -162,7 +157,6 @@ public class UserServiceImpl implements UserService {
                 .createdAt(user.getCreatedAt())
                 .dogs(dogs)
                 .matchCount(matchCount)
-                .averageRating(averageRating)
                 .rankingScore(rankingScore)
                 .build();
     }
@@ -188,7 +182,6 @@ public class UserServiceImpl implements UserService {
                 .map(user -> {
                     int matchCount = matchRepository.countByUser1IdOrUser2Id(user.getId(), user.getId());
                     int likeCount = swipeRepository.countLikesByUserId(user.getId());
-                    double averageRating = reviewRepository.findAverageRatingByUserId(user.getId());
                     int rankingScore = likeCount;  // 좋아요 수가 곧 랭킹 점수
                     
                     // 대표 강아지 정보
@@ -201,7 +194,6 @@ public class UserServiceImpl implements UserService {
                             .city(user.getCity())
                             .district(user.getDistrict())
                             .matchCount(matchCount)
-                            .averageRating(averageRating)
                             .rankingScore(rankingScore)
                             .mainDogPhotoUrl(mainDogPhotoUrl)
                             .mainDogName(mainDogName)
@@ -218,7 +210,6 @@ public class UserServiceImpl implements UserService {
                         .city(rankings.get(i).getCity())
                         .district(rankings.get(i).getDistrict())
                         .matchCount(rankings.get(i).getMatchCount())
-                        .averageRating(rankings.get(i).getAverageRating())
                         .rankingScore(rankings.get(i).getRankingScore())
                         .rank(i + 1 + (page * size))
                         .mainDogPhotoUrl(rankings.get(i).getMainDogPhotoUrl())

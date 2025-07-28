@@ -15,7 +15,6 @@ public class UserRankingResponse {
     private String city;
     private String district;
     private int matchCount;          // 매칭 수
-    private double averageRating;    // 평균 평점
     private int rankingScore;        // 랭킹 점수
     private int rank;                // 순위
     private String mainDogPhotoUrl;  // 대표 강아지 사진
