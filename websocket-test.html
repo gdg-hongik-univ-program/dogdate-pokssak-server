@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket STOMP Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket STOMP 연결 테스트</h1>
+    <div>
+        <button onclick="connect()">연결</button>
+        <button onclick="disconnect()">연결 해제</button>
+        <button onclick="sendMessage()">메시지 전송</button>
+    </div>
+    <div>
+        <h3>로그:</h3>
+        <div id="log" style="border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px;"></div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function connect() {
+            // 순수 WebSocket 연결 (SockJS 없이)
+            const socket = new WebSocket('ws://localhost:8080/ws-stomp');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                log('✅ STOMP 연결 성공: ' + frame);
+                
+                // 채팅방 구독
+                stompClient.subscribe('/sub/chat/room/1', function(message) {
+                    log('📨 메시지 수신: ' + message.body);
+                });
+                
+            }, function(error) {
+                log('❌ STOMP 연결 실패: ' + error);
+            });
+        }
+        
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                log('🔌 연결 해제됨');
+            }
+        }
+        
+        function sendMessage() {
+            if (stompClient !== null) {
+                const message = {
+                    chatroomId: 1,
+                    senderId: 2,
+                    content: '브라우저에서 보낸 테스트 메시지!',
+                    type: 'CHAT'
+                };
+                
+                stompClient.send('/pub/chat/message', {}, JSON.stringify(message));
+                log('📤 메시지 전송: ' + message.content);
+            } else {
+                log('❌ 연결되지 않음');
+            }
+        }
+    </script>
+</body>
+</html>

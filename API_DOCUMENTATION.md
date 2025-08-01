@@ -393,6 +393,196 @@ GET /api/home/user/{userId}
 
 ---
 
+## 💬 실시간 채팅 API (WebSocket STOMP)
+
+### WebSocket 연결
+```javascript
+// 연결 설정
+const socket = new SockJS('http://localhost:8080/ws-stomp');
+const stompClient = Stomp.over(socket);
+
+// 연결
+stompClient.connect({}, function(frame) {
+    console.log('Connected: ' + frame);
+});
+```
+
+### 채팅방 구독
+```javascript
+// 특정 채팅방 구독
+stompClient.subscribe('/sub/chat/room/{chatroomId}', function(message) {
+    const chatMessage = JSON.parse(message.body);
+    // 메시지 처리 로직
+});
+```
+
+### 메시지 전송
+```javascript
+// 일반 채팅 메시지 전송
+stompClient.send('/pub/chat/message', {}, JSON.stringify({
+    chatroomId: 1,
+    senderId: 123,
+    content: '안녕하세요!',
+    type: 'CHAT'
+}));
+
+// 채팅방 입장 알림
+stompClient.send('/pub/chat/enter', {}, JSON.stringify({
+    chatroomId: 1,
+    senderId: 123,
+    type: 'ENTER'
+}));
+
+// 채팅방 퇴장 알림
+stompClient.send('/pub/chat/leave', {}, JSON.stringify({
+    chatroomId: 1,
+    senderId: 123,
+    type: 'LEAVE'
+}));
+```
+
+### 메시지 형식
+
+**전송 메시지 (Client → Server)**
+```json
+{
+  "chatroomId": 1,
+  "senderId": 123,
+  "content": "안녕하세요!",
+  "type": "CHAT"
+}
+```
+
+**수신 메시지 (Server → Client)**
+```json
+{
+  "chatroomId": 1,
+  "senderId": 123,
+  "content": "안녕하세요!",
+  "type": "CHAT",
+  "senderNickname": "테스트유저",
+  "timestamp": "2025-08-01T10:30:00",
+  "isRead": false
+}
+```
+
+### 메시지 타입
+- `CHAT`: 일반 채팅 메시지
+- `ENTER`: 채팅방 입장 알림
+- `LEAVE`: 채팅방 퇴장 알림
+
+### WebSocket 엔드포인트
+- **연결 엔드포인트**: `/ws-stomp`
+- **구독 경로**: `/sub/chat/room/{chatroomId}`
+- **발행 경로**: 
+  - `/pub/chat/message` - 일반 메시지
+  - `/pub/chat/enter` - 입장 알림
+  - `/pub/chat/leave` - 퇴장 알림
+
+### 채팅 REST API
+
+#### 채팅 기록 조회
+```http
+GET /api/chat/{chatroomId}/history?userId={userId}
+```
+
+**응답**
+```json
+[
+  {
+    "id": 1,
+    "chatroomId": 1,
+    "senderId": 123,
+    "senderNickname": "테스트유저",
+    "content": "안녕하세요!",
+    "sentAt": "2025-08-01T10:30:00",
+    "read": false
+  }
+]
+```
+
+#### 읽지 않은 메시지 수 조회
+```http
+GET /api/chat/{chatroomId}/unread-count?userId={userId}
+```
+
+**응답**
+```json
+{
+  "unreadCount": 5
+}
+```
+
+#### 메시지 읽음 처리
+```http
+PUT /api/chat/{chatroomId}/read?userId={userId}
+```
+
+**응답**
+```http
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+메시지를 읽음 처리했습니다.
+```
+
+#### 채팅방 생성 (매치 기반)
+```http
+POST /api/chat/room/match/{matchId}
+```
+
+**응답**
+```json
+{
+  "id": 1,
+  "matchId": 1,
+  "createdAt": "2025-08-01T10:00:00"
+}
+```
+
+#### 매치 기반 채팅방 조회
+```http
+GET /api/chat/room/match/{matchId}
+```
+
+**응답**
+```json
+{
+  "id": 1,
+  "matchId": 1,
+  "createdAt": "2025-08-01T10:00:00"
+}
+```
+
+### 채팅 사용 시나리오
+
+1. **매치 성공 후 채팅방 생성**
+   ```http
+   POST /api/chat/room/match/1
+   ```
+
+2. **WebSocket 연결 및 채팅방 구독**
+   ```javascript
+   stompClient.subscribe('/sub/chat/room/1', handleMessage);
+   ```
+
+3. **실시간 메시지 전송**
+   ```javascript
+   stompClient.send('/pub/chat/message', {}, JSON.stringify(message));
+   ```
+
+4. **채팅 기록 조회**
+   ```http
+   GET /api/chat/1/history?userId=123
+   ```
+
+5. **읽음 처리**
+   ```http
+   PUT /api/chat/1/read?userId=123
+   ```
+
+---
+
 ## 🌍 지역 관리 API (`/api/regions`)
 
 ### 모든 시/도 목록
