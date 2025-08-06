@@ -25,6 +25,7 @@ dependencyManagement {
 
 dependencies {
 	runtimeOnly 'mysql:mysql-connector-java:8.0.33'
+	testRuntimeOnly 'com.h2database:h2'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -38,9 +39,17 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	
+	// WebSocket 테스트를 위한 의존성
+	testImplementation 'org.springframework:spring-websocket'
+	testImplementation 'org.springframework:spring-messaging'
+	testImplementation 'org.springframework.security:spring-security-test'
+	
 	// AWS S3 의존성 (BOM으로 버전 관리)
 	implementation 'software.amazon.awssdk:s3'
 	implementation 'software.amazon.awssdk:auth'
+	
+	// WebSocket & STOMP 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 tasks.named('test') {

@@ -25,4 +25,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     long countUnreadMessages(@Param("chatRoomId") Long chatRoomId, @Param("userId") Long userId);
     
     List<ChatMessage> findByChatRoomAndSenderAndReadFalse(ChatRoom chatRoom, User sender);
+    
+    List<ChatMessage> findByChatRoomIdAndSenderIdNotAndReadFalse(Long chatRoomId, Long senderId);
+    
+    int countByChatRoomIdAndSenderIdNotAndReadFalse(Long chatRoomId, Long senderId);
 } 
