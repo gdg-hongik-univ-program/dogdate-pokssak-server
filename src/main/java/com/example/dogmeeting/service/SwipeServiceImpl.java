@@ -5,6 +5,8 @@ import com.example.dogmeeting.entity.Match;
 import com.example.dogmeeting.entity.Swipe;
 import com.example.dogmeeting.entity.User;
 import com.example.dogmeeting.exception.UserNotFoundException;
+import com.example.dogmeeting.entity.ChatRoom;
+import com.example.dogmeeting.repository.ChatRoomRepository;
 import com.example.dogmeeting.repository.MatchRepository;
 import com.example.dogmeeting.repository.SwipeRepository;
 import com.example.dogmeeting.repository.UserRepository;
@@ -22,6 +24,7 @@ public class SwipeServiceImpl implements SwipeService {
     private final SwipeRepository swipeRepository;
     private final UserRepository userRepository;
     private final MatchRepository matchRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     @Override
     @Transactional
@@ -55,6 +58,12 @@ public class SwipeServiceImpl implements SwipeService {
                     .status("ACTIVE")
                     .build();
             matchRepository.save(match);
+
+            // 채팅방 생성
+            ChatRoom chatRoom = ChatRoom.builder()
+                    .match(match)
+                    .build();
+            chatRoomRepository.save(chatRoom);
             
             return MatchResponse.from(match);
         }
