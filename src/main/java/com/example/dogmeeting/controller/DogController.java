@@ -7,6 +7,7 @@ import com.example.dogmeeting.service.DogService;
 import com.example.dogmeeting.service.FileUploadService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,25 +15,38 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/dogs")
 @RequiredArgsConstructor
 public class DogController {
 
     private final DogService dogService;
-    // private final FileUploadService fileUploadService;  // S3 서비스 임시 비활성화
+    private final FileUploadService fileUploadService;
 
     @PostMapping("/users/{userId}")
     public ResponseEntity<String> createDog(
             @PathVariable Long userId,
             @Valid @RequestPart("dogInfo") DogCreateRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image) {
+
+        // ===== 디버깅 로그 추가 =====
+        if (image == null) {
+            log.info("### 이미지 파일이 NULL입니다.");
+        } else if (image.isEmpty()) {
+            log.info("### 이미지 파일이 비어있습니다 (Empty).");
+            log.info("### 수신된 파일 이름: {}", image.getOriginalFilename());
+        } else {
+            log.info("### 이미지 파일 수신 성공!");
+            log.info("### 원본 파일명: {}", image.getOriginalFilename());
+            log.info("### 파일 크기: {} bytes", image.getSize());
+            log.info("### Content Type: {}", image.getContentType());
+        }
+        // ===========================
         
         // 강아지 정보 먼저 저장
         Long dogId = dogService.createDog(userId, request);
         
-        // S3 업로드 임시 비활성화
-        /*
         if (image != null && !image.isEmpty()) {
             try {
                 String imageUrl = fileUploadService.uploadDogImage(image, userId, dogId);
@@ -43,7 +57,6 @@ public class DogController {
                 return new ResponseEntity<>("강아지 정보가 등록되었지만 이미지 업로드에 실패했습니다. ID: " + dogId + ", 오류: " + e.getMessage(), HttpStatus.CREATED);
             }
         }
-        */
         
         return new ResponseEntity<>("강아지 정보가 성공적으로 등록되었습니다. ID: " + dogId, HttpStatus.CREATED);
     }
@@ -84,10 +97,9 @@ public class DogController {
         return ResponseEntity.ok("강아지 정보가 성공적으로 삭제되었습니다.");
     }
 
-    /**
-     * 강아지 이미지만 업로드/변경
-     */
-    /*
+
+    // 강아지 이미지 업로드/변경
+
     @PostMapping("/{dogId}/image")
     public ResponseEntity<String> uploadDogImage(
             @PathVariable Long dogId,
@@ -99,12 +111,10 @@ public class DogController {
         
         return ResponseEntity.ok("강아지 사진이 성공적으로 업로드되었습니다. URL: " + imageUrl);
     }
-    */
 
-    /**
-     * 강아지 이미지 삭제
-     */
-    /*
+
+    //강아지 이미지 삭제
+
     @DeleteMapping("/{dogId}/image")
     public ResponseEntity<String> deleteDogImage(@PathVariable Long dogId) {
         DogResponse dog = dogService.getDogById(dogId);
@@ -114,5 +124,4 @@ public class DogController {
         }
         return ResponseEntity.ok("강아지 사진이 성공적으로 삭제되었습니다.");
     }
-    */
 } 

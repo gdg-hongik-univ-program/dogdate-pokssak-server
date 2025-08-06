@@ -10,19 +10,19 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @Slf4j
-// @Configuration  // S3 설정 임시 비활성화
+@Configuration
 public class S3Config {
 
-    // @Value("${aws.accessKeyId}")
+    @Value("${aws.accessKeyId}")
     private String accessKey;
 
-    // @Value("${aws.secretKey}")
+    @Value("${aws.secretKey}")
     private String secretKey;
 
-    // @Value("${aws.region}")
+    @Value("${aws.region}")
     private String region;
 
-    // @Bean
+    @Bean
     public S3Client s3Client() {
         log.info("S3Config 초기화 중...");
         log.info("AWS Region: {}", region);

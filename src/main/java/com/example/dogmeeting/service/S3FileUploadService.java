@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-// @Service  // S3 서비스 임시 비활성화
+@Service
 @RequiredArgsConstructor
 public class S3FileUploadService implements FileUploadService {
 
