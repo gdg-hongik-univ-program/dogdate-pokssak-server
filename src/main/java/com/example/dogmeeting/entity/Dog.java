@@ -40,12 +40,11 @@ public class Dog {
     @OneToMany(mappedBy = "dog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DogTitle> dogTitles;
 
-    public void updateInfo(String name, String breed, Integer age, String description, String photoUrl) {
+    public void updateInfo(String name, String breed, Integer age, String description) {
         this.name = name;
         this.breed = breed;
         this.age = age;
         this.description = description;
-        this.photoUrl = photoUrl;
     }
 
     public void updatePhotoUrl(String photoUrl) {
