@@ -28,6 +28,7 @@ public class DogServiceImpl implements DogService {
     private final DogRepository dogRepository;
     private final UserRepository userRepository;
     private final SwipeRepository swipeRepository;
+    private final FileUploadService fileUploadService;
 
     @Override
     @Transactional
@@ -99,12 +100,24 @@ public class DogServiceImpl implements DogService {
 
     @Override
     @Transactional
-    public void updateDog(Long dogId, DogCreateRequest request) {
+    public void updateDog(Long dogId, DogCreateRequest request, org.springframework.web.multipart.MultipartFile image) {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
 
+        // 강아지 정보 업데이트
         dog.updateInfo(request.getName(), request.getBreed(), request.getAge(),
-                      request.getDescription(), request.getPhotoUrl());
+                      request.getDescription());
+
+        // 이미지 파일이 제공된 경우 처리
+        if (image != null && !image.isEmpty()) {
+            // 기존 이미지가 있다면 삭제
+            if (dog.getPhotoUrl() != null && !dog.getPhotoUrl().isEmpty()) {
+                fileUploadService.deleteFile(dog.getPhotoUrl());
+            }
+            // 새 이미지 업로드
+            String imageUrl = fileUploadService.uploadDogImage(image, dog.getUser().getId(), dogId);
+            dog.updatePhotoUrl(imageUrl);
+        }
     }
 
     @Override

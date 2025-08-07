@@ -12,7 +12,7 @@ public interface DogService {
     DogResponse getDogById(Long dogId);
     DogProfileResponse getDogProfile(Long dogId);
     List<DogResponse> getDogsByUserId(Long userId);
-    void updateDog(Long dogId, DogCreateRequest request);
+    void updateDog(Long dogId, DogCreateRequest request, org.springframework.web.multipart.MultipartFile image);
     void updateDogImage(Long dogId, String imageUrl);
     void deleteDog(Long dogId);
     
