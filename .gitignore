@@ -37,4 +37,4 @@ out/
 .vscode/
 
 ### Secret properties file (AWS 키 포함된 파일) ###
-src/main/resources/application-secrets.properties
+src/main/resources/application-secret.properties
