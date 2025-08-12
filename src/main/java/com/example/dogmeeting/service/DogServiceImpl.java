@@ -40,6 +40,27 @@ public class DogServiceImpl implements DogService {
                 .name(request.getName())
                 .breed(request.getBreed())
                 .age(request.getAge())
+                .gender(request.getGender())
+                .description(request.getDescription())
+                .photoUrl(request.getPhotoUrl())
+                .build();
+
+        dogRepository.save(dog);
+        return dog.getId();
+    }
+
+    @Override
+    @Transactional
+    public Long createDogByLoginId(String loginId, DogCreateRequest request) {
+        User user = userRepository.findByUserId(loginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
+
+        Dog dog = Dog.builder()
+                .user(user)
+                .name(request.getName())
+                .breed(request.getBreed())
+                .age(request.getAge())
+                .gender(request.getGender())
                 .description(request.getDescription())
                 .photoUrl(request.getPhotoUrl())
                 .build();
@@ -104,7 +125,7 @@ public class DogServiceImpl implements DogService {
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
 
         dog.updateInfo(request.getName(), request.getBreed(), request.getAge(),
-                      request.getDescription(), request.getPhotoUrl());
+                      request.getGender(), request.getDescription(), request.getPhotoUrl());
     }
 
     @Override

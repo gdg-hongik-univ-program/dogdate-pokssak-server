@@ -22,14 +22,14 @@ public class DogController {
     private final DogService dogService;
     // private final FileUploadService fileUploadService;  // S3 서비스 임시 비활성화
 
-    @PostMapping("/users/{userId}")
+    @PostMapping("/users/{loginId}")
     public ResponseEntity<String> createDog(
-            @PathVariable Long userId,
+            @PathVariable String loginId,
             @Valid @RequestPart("dogInfo") DogCreateRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image) {
         
-        // 강아지 정보 먼저 저장
-        Long dogId = dogService.createDog(userId, request);
+        // 강아지 정보 먼저 저장 (loginId로 사용자 찾기)
+        Long dogId = dogService.createDogByLoginId(loginId, request);
         
         // S3 업로드 임시 비활성화
         /*

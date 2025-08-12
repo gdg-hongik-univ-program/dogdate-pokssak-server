@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface DogService {
     Long createDog(Long userId, DogCreateRequest request);
+    Long createDogByLoginId(String loginId, DogCreateRequest request);
     DogResponse getDogById(Long dogId);
     DogProfileResponse getDogProfile(Long dogId);
     List<DogResponse> getDogsByUserId(Long userId);

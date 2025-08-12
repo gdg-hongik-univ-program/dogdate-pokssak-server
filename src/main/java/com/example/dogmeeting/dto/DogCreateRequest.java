@@ -24,6 +24,9 @@ public class DogCreateRequest {
     @Min(value = 0, message = "나이는 0 이상이어야 합니다.")
     private Integer age;
 
+    @NotBlank(message = "성별을 입력해주세요.")
+    private String gender;
+
     private String description;
 
     private String photoUrl;
