@@ -96,18 +96,23 @@ nickname=새닉네임&gender=FEMALE&city=부산광역시&district=해운대구
 
 ### 강아지 등록
 ```http
-POST /api/dogs/users/{userId}
+POST /api/dogs/users/{loginId}
 Content-Type: multipart/form-data
 
 dogInfo={
   "name": "멍멍이",
-  "breed": "골든리트리버",
+  "breed": "골든리트리버", 
   "age": 3,
+  "gender": "male",
   "description": "착하고 순한 강아지입니다.",
   "photoUrl": null
 }
 image=[이미지 파일] (선택사항)
 ```
+
+**주요 변경사항**: 
+- URL 파라미터가 `{userId}` (숫자 ID)에서 `{loginId}` (로그인 아이디 문자열)로 변경
+- `dogInfo`에 `gender` 필드 추가 (필수)
 
 **응답**
 ```http
@@ -129,6 +134,7 @@ GET /api/dogs/{dogId}
   "name": "멍멍이",
   "breed": "골든리트리버",
   "age": 3,
+  "gender": "male",
   "description": "착하고 순한 강아지입니다.",
   "photoUrl": null,
   "userId": 1
@@ -168,20 +174,56 @@ GET /api/dogs/users/{userId}
 ### 강아지 정보 수정
 ```http
 PUT /api/dogs/{dogId}
-Content-Type: application/json
+Content-Type: multipart/form-data
 
-{
+dogInfo={
   "name": "새이름",
   "breed": "골든리트리버",
   "age": 4,
+  "gender": "female",
   "description": "업데이트된 설명",
   "photoUrl": null
 }
+image=[새 이미지 파일] (선택사항)
 ```
+
+**주요 변경사항**: 
+- Content-Type이 `application/json`에서 `multipart/form-data`로 변경
+- 이미지 파일 업로드 지원
+- `gender` 필드 추가
 
 ### 강아지 삭제
 ```http
 DELETE /api/dogs/{dogId}
+```
+
+### 강아지 이미지 업로드/변경
+```http
+POST /api/dogs/{dogId}/image
+Content-Type: multipart/form-data
+
+userId={userId}&image=[이미지 파일]
+```
+
+**응답**
+```http
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+강아지 사진이 성공적으로 업로드되었습니다. URL: [S3_URL]
+```
+
+### 강아지 이미지 삭제
+```http
+DELETE /api/dogs/{dogId}/image
+```
+
+**응답**
+```http
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+강아지 사진이 성공적으로 삭제되었습니다.
 ```
 
 ---
@@ -686,4 +728,36 @@ GET /api/regions/all
 
 ---
 
-*이 문서는 DogMeeting API v1.0을 기준으로 작성되었습니다.*
+## 🚀 최근 주요 변경사항 (v1.1)
+
+### 강아지 등록 API 변경
+- **URL 변경**: `POST /api/dogs/users/{userId}` → `POST /api/dogs/users/{loginId}`
+- **파라미터 타입 변경**: 숫자 ID → 로그인 아이디 (문자열)
+- **새 필드 추가**: `dogInfo`에 `gender` 필드 필수 추가
+
+### 프론트엔드 수정 필요사항
+```javascript
+// 이전 버전
+fetch(`/api/dogs/users/${userInfo.id}`, { ... });
+
+// 새 버전  
+fetch(`/api/dogs/users/${userInfo.userId}`, { ... });
+
+// dogInfo에 gender 필드 추가 필요
+const dogInfo = {
+  name: "멍멍이",
+  breed: "골든리트리버",
+  age: 3,
+  gender: "male",  // 새로 추가된 필수 필드
+  description: "설명"
+};
+```
+
+### 매핑 변경 이유
+- 프론트엔드에서 보내는 `userInfo.userId`는 로그인 아이디("testuser1")
+- 백엔드에서 숫자 PK(1, 2, 3...)가 아닌 문자열 로그인 아이디로 사용자 식별
+- 보안상 내부 PK 노출 방지 및 RESTful API 설계 개선
+
+---
+
+*이 문서는 DogMeeting API v1.1을 기준으로 작성되었습니다.*
