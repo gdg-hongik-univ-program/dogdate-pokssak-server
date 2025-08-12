@@ -13,9 +13,12 @@ public interface UserService {
     Long joinUser(UserJoinRequest request);
     User loginUser(String userId, String password);
     UserResponse getUserById(Long userId);
+    UserResponse getUserByLoginId(String loginId);
     UserResponse getUserByNickname(String nickname);
     List<UserResponse> getPotentialMatches(Long userId);
+    List<UserResponse> getPotentialMatchesByLoginId(String loginId);
     void updateUserProfile(Long userId, String nickname, String gender, String city, String district);
+    void updateUserProfileByLoginId(String loginId, String nickname, String gender, String city, String district);
     
     // 홈 화면용 메서드들
     UserProfileResponse getUserProfile(Long userId);

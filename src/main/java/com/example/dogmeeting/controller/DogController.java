@@ -24,9 +24,9 @@ public class DogController {
     private final DogService dogService;
     private final FileUploadService fileUploadService;
 
-    @PostMapping("/users/{loginId}")
+    @PostMapping("/users/{userId}")
     public ResponseEntity<String> createDog(
-            @PathVariable String loginId,
+            @PathVariable Long userId,
             @Valid @RequestPart("dogInfo") DogCreateRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image) {
 
@@ -43,14 +43,12 @@ public class DogController {
             log.info("### Content Type: {}", image.getContentType());
         }
         // ===========================
-        
-        // 강아지 정보 먼저 저장 (loginId로 사용자 찾기)
-        Long dogId = dogService.createDogByLoginId(loginId, request);
-        
+
+        // 강아지 정보 먼저 저장
+        Long dogId = dogService.createDog(userId, request);
+
         if (image != null && !image.isEmpty()) {
             try {
-                // loginId로 사용자 ID를 찾아서 이미지 업로드
-                Long userId = dogService.getUserIdByLoginId(loginId);
                 String imageUrl = fileUploadService.uploadDogImage(image, userId, dogId);
                 dogService.updateDogImage(dogId, imageUrl);
                 return new ResponseEntity<>("강아지 정보가 성공적으로 등록되었습니다. ID: " + dogId + ", 이미지 URL: " + imageUrl, HttpStatus.CREATED);
@@ -59,7 +57,7 @@ public class DogController {
                 return new ResponseEntity<>("강아지 정보가 등록되었지만 이미지 업로드에 실패했습니다. ID: " + dogId + ", 오류: " + e.getMessage(), HttpStatus.CREATED);
             }
         }
-        
+
         return new ResponseEntity<>("강아지 정보가 성공적으로 등록되었습니다. ID: " + dogId, HttpStatus.CREATED);
     }
 
@@ -109,7 +107,7 @@ public class DogController {
             @PathVariable Long dogId,
             @RequestParam("userId") Long userId,
             @RequestPart("image") MultipartFile image) {
-        
+
         String imageUrl = fileUploadService.uploadDogImage(image, userId, dogId);
         dogService.updateDogImage(dogId, imageUrl);
         

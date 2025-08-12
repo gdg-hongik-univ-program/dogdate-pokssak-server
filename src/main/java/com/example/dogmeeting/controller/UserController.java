@@ -32,9 +32,9 @@ public class UserController {
         return new ResponseEntity<>("로그인 성공! 환영합니다, " + loggedInUser.getNickname() + "님!", HttpStatus.OK);
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
-        UserResponse user = userService.getUserById(userId);
+    @GetMapping("/{loginId}")
+    public ResponseEntity<UserResponse> getUserByLoginId(@PathVariable String loginId) {
+        UserResponse user = userService.getUserByLoginId(loginId);
         return ResponseEntity.ok(user);
     }
 
@@ -44,20 +44,20 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/{userId}/potential-matches")
-    public ResponseEntity<List<UserResponse>> getPotentialMatches(@PathVariable Long userId) {
-        List<UserResponse> matches = userService.getPotentialMatches(userId);
+    @GetMapping("/{loginId}/potential-matches")
+    public ResponseEntity<List<UserResponse>> getPotentialMatches(@PathVariable String loginId) {
+        List<UserResponse> matches = userService.getPotentialMatchesByLoginId(loginId);
         return ResponseEntity.ok(matches);
     }
 
-    @PutMapping("/{userId}/profile")
+    @PutMapping("/{loginId}/profile")
     public ResponseEntity<String> updateProfile(
-            @PathVariable Long userId,
+            @PathVariable String loginId,
             @RequestParam String nickname,
             @RequestParam String gender,
             @RequestParam String city,
             @RequestParam(required = false) String district) {
-        userService.updateUserProfile(userId, nickname, gender, city, district);
+        userService.updateUserProfileByLoginId(loginId, nickname, gender, city, district);
         return ResponseEntity.ok("프로필이 성공적으로 업데이트되었습니다.");
     }
 } 

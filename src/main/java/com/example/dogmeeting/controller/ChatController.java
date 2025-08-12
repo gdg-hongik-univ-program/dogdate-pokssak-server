@@ -31,8 +31,8 @@ public class ChatController {
     public void message(ChatMessageDto messageDto) {
         try {
             // 사용자 정보 조회
-            User sender = userRepository.findById(messageDto.getSenderId())
-                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+            User sender = userRepository.findByUserId(messageDto.getSenderLoginId())
+                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + messageDto.getSenderLoginId()));
 
             // 닉네임 설정
             messageDto.setSenderNickname(sender.getNickname());
@@ -61,8 +61,8 @@ public class ChatController {
     @MessageMapping("/chat/enter")
     public void enterUser(ChatMessageDto messageDto) {
         try {
-            User user = userRepository.findById(messageDto.getSenderId())
-                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+            User user = userRepository.findByUserId(messageDto.getSenderLoginId())
+                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + messageDto.getSenderLoginId()));
 
             messageDto.setSenderNickname(user.getNickname());
             messageDto.setType(MessageType.ENTER);
@@ -84,8 +84,8 @@ public class ChatController {
     @MessageMapping("/chat/leave")
     public void leaveUser(ChatMessageDto messageDto) {
         try {
-            User user = userRepository.findById(messageDto.getSenderId())
-                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+            User user = userRepository.findByUserId(messageDto.getSenderLoginId())
+                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + messageDto.getSenderLoginId()));
 
             messageDto.setSenderNickname(user.getNickname());
             messageDto.setType(MessageType.LEAVE);

@@ -28,15 +28,15 @@ public class SwipeServiceImpl implements SwipeService {
 
     @Override
     @Transactional
-    public MatchResponse swipeUser(Long fromUserId, Long toUserId) {
-        User fromUser = userRepository.findById(fromUserId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    public MatchResponse swipeUser(String fromLoginId, String toLoginId) {
+        User fromUser = userRepository.findByUserId(fromLoginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + fromLoginId));
         
-        User toUser = userRepository.findById(toUserId)
-                .orElseThrow(() -> new UserNotFoundException("대상 사용자를 찾을 수 없습니다."));
+        User toUser = userRepository.findByUserId(toLoginId)
+                .orElseThrow(() -> new UserNotFoundException("대상 사용자를 찾을 수 없습니다: " + toLoginId));
 
         // 이미 스와이프했는지 확인
-        if (swipeRepository.existsByFromUserIdAndToUserId(fromUserId, toUserId)) {
+        if (swipeRepository.existsByFromUserIdAndToUserId(fromUser.getId(), toUser.getId())) {
             throw new IllegalStateException("이미 스와이프한 사용자입니다.");
         }
 
@@ -48,7 +48,7 @@ public class SwipeServiceImpl implements SwipeService {
         swipeRepository.save(swipe);
 
         // 상대방도 나를 스와이프했는지 확인
-        boolean mutualSwipe = swipeRepository.existsByFromUserIdAndToUserId(toUserId, fromUserId);
+        boolean mutualSwipe = swipeRepository.existsByFromUserIdAndToUserId(toUser.getId(), fromUser.getId());
         
         if (mutualSwipe) {
             // 매칭 생성
@@ -72,18 +72,22 @@ public class SwipeServiceImpl implements SwipeService {
     }
 
     @Override
-    public boolean hasAlreadySwiped(Long fromUserId, Long toUserId) {
-        return swipeRepository.existsByFromUserIdAndToUserId(fromUserId, toUserId);
+    public boolean hasAlreadySwiped(String fromLoginId, String toLoginId) {
+        User fromUser = userRepository.findByUserId(fromLoginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + fromLoginId));
+        User toUser = userRepository.findByUserId(toLoginId)
+                .orElseThrow(() -> new UserNotFoundException("대상 사용자를 찾을 수 없습니다: " + toLoginId));
+        return swipeRepository.existsByFromUserIdAndToUserId(fromUser.getId(), toUser.getId());
     }
 
     // 좋아요 관련 메서드들 구현
     @Override
     @Transactional
-    public boolean toggleLike(Long fromUserId, Long toUserId) {
-        User fromUser = userRepository.findById(fromUserId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        User toUser = userRepository.findById(toUserId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    public boolean toggleLike(String fromLoginId, String toLoginId) {
+        User fromUser = userRepository.findByUserId(fromLoginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + fromLoginId));
+        User toUser = userRepository.findByUserId(toLoginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + toLoginId));
 
         // 기존 스와이프가 있는지 확인
         Optional<Swipe> existingSwipe = swipeRepository.findByFromUserAndToUser(fromUser, toUser);
@@ -107,11 +111,11 @@ public class SwipeServiceImpl implements SwipeService {
     }
 
     @Override
-    public boolean isLiked(Long fromUserId, Long toUserId) {
-        User fromUser = userRepository.findById(fromUserId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        User toUser = userRepository.findById(toUserId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    public boolean isLiked(String fromLoginId, String toLoginId) {
+        User fromUser = userRepository.findByUserId(fromLoginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + fromLoginId));
+        User toUser = userRepository.findByUserId(toLoginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + toLoginId));
 
         Optional<Swipe> swipe = swipeRepository.findByFromUserAndToUser(fromUser, toUser);
         return swipe.map(Swipe::getLike).orElse(false);

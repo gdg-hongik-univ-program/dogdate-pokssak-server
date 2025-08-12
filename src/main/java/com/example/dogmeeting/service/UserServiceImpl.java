@@ -91,6 +91,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponse getUserByLoginId(String loginId) {
+        User user = userRepository.findByUserId(loginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
+        return UserResponse.from(user);
+    }
+
+    @Override
     public UserResponse getUserByNickname(String nickname) {
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
@@ -119,10 +126,40 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserResponse> getPotentialMatchesByLoginId(String loginId) {
+        User currentUser = userRepository.findByUserId(loginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
+        
+        List<User> potentialMatches;
+        
+        // district가 있으면 같은 district 내에서, 없으면 같은 city 내에서 매칭
+        if (currentUser.getDistrict() != null && !currentUser.getDistrict().trim().isEmpty()) {
+            potentialMatches = userRepository.findPotentialMatchesInDistrict(
+                    currentUser.getCity(), currentUser.getDistrict(), currentUser.getGender(), currentUser.getId());
+        } else {
+            potentialMatches = userRepository.findPotentialMatches(
+                    currentUser.getCity(), currentUser.getGender(), currentUser.getId());
+        }
+        
+        return potentialMatches.stream()
+                .map(UserResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public void updateUserProfile(Long userId, String nickname, String gender, String city, String district) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        user.updateProfile(nickname, gender, city, district);
+    }
+
+    @Override
+    @Transactional
+    public void updateUserProfileByLoginId(String loginId, String nickname, String gender, String city, String district) {
+        User user = userRepository.findByUserId(loginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
         
         user.updateProfile(nickname, gender, city, district);
     }

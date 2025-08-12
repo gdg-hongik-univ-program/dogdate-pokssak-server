@@ -3,10 +3,10 @@ package com.example.dogmeeting.service;
 import com.example.dogmeeting.dto.MatchResponse;
 
 public interface SwipeService {
-    MatchResponse swipeUser(Long fromUserId, Long toUserId);
-    boolean hasAlreadySwiped(Long fromUserId, Long toUserId);
+    MatchResponse swipeUser(String fromLoginId, String toLoginId);
+    boolean hasAlreadySwiped(String fromLoginId, String toLoginId);
     
     // 좋아요 관련 메서드들
-    boolean toggleLike(Long fromUserId, Long toUserId);
-    boolean isLiked(Long fromUserId, Long toUserId);
+    boolean toggleLike(String fromLoginId, String toLoginId);
+    boolean isLiked(String fromLoginId, String toLoginId);
 } 

@@ -21,10 +21,10 @@ public class MatchController {
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
 
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<List<MatchResponse>> getUserMatches(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    @GetMapping("/users/{loginId}")
+    public ResponseEntity<List<MatchResponse>> getUserMatches(@PathVariable String loginId) {
+        User user = userRepository.findByUserId(loginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
 
         List<Match> matches = matchRepository.findByUser(user);
         List<MatchResponse> matchResponses = matches.stream()
@@ -34,10 +34,10 @@ public class MatchController {
         return ResponseEntity.ok(matchResponses);
     }
 
-    @GetMapping("/users/{userId}/active")
-    public ResponseEntity<List<MatchResponse>> getActiveMatches(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    @GetMapping("/users/{loginId}/active")
+    public ResponseEntity<List<MatchResponse>> getActiveMatches(@PathVariable String loginId) {
+        User user = userRepository.findByUserId(loginId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
 
         List<Match> matches = matchRepository.findByUserAndStatus(user, "ACTIVE");
         List<MatchResponse> matchResponses = matches.stream()

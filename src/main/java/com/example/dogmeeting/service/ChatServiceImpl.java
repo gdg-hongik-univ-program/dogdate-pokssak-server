@@ -76,14 +76,14 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void sendMessage(ChatMessageDto messageDto) {
         try {
-            User sender = userRepository.findById(messageDto.getSenderId())
-                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+            User sender = userRepository.findByUserId(messageDto.getSenderLoginId())
+                    .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + messageDto.getSenderLoginId()));
 
             ChatRoom chatRoom = chatRoomRepository.findById(messageDto.getChatroomId())
                     .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
             // 채팅방 접근 권한 확인
-            validateChatRoomAccess(chatRoom, messageDto.getSenderId());
+            validateChatRoomAccess(chatRoom, sender.getId());
 
             // DB에 메시지 저장
             ChatMessage chatMessage = ChatMessage.builder()
