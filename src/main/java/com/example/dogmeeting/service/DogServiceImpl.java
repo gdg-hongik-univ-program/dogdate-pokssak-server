@@ -41,40 +41,12 @@ public class DogServiceImpl implements DogService {
                 .name(request.getName())
                 .breed(request.getBreed())
                 .age(request.getAge())
-                .gender(request.getGender())
                 .description(request.getDescription())
                 .photoUrl(request.getPhotoUrl())
                 .build();
 
         dogRepository.save(dog);
         return dog.getId();
-    }
-
-    @Override
-    @Transactional
-    public Long createDogByLoginId(String loginId, DogCreateRequest request) {
-        User user = userRepository.findByUserId(loginId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
-
-        Dog dog = Dog.builder()
-                .user(user)
-                .name(request.getName())
-                .breed(request.getBreed())
-                .age(request.getAge())
-                .gender(request.getGender())
-                .description(request.getDescription())
-                .photoUrl(request.getPhotoUrl())
-                .build();
-
-        dogRepository.save(dog);
-        return dog.getId();
-    }
-
-    @Override
-    public Long getUserIdByLoginId(String loginId) {
-        User user = userRepository.findByUserId(loginId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
-        return user.getId();
     }
 
     @Override
@@ -134,7 +106,7 @@ public class DogServiceImpl implements DogService {
 
         // 강아지 정보 업데이트
         dog.updateInfo(request.getName(), request.getBreed(), request.getAge(),
-                      request.getGender(), request.getDescription());
+                      request.getDescription());
 
         // 이미지 파일이 제공된 경우 처리
         if (image != null && !image.isEmpty()) {
