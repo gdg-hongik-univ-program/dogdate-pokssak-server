@@ -13,5 +13,5 @@ import lombok.Setter;
 public class SwipeRequest {
     
     @NotNull(message = "대상 사용자 ID를 입력해주세요.")
-    private Long toUserId;
+    private String toUserId;
 } 

@@ -16,8 +16,8 @@ public class ChatMessageDto {
     @NotNull(message = "채팅방 ID를 입력해주세요.")
     private Long chatroomId;
 
-    @NotNull(message = "발신자 ID를 입력해주세요.")
-    private Long senderId;
+    @NotBlank(message = "발신자 로그인 ID를 입력해주세요.")
+    private String senderLoginId;
 
     @NotBlank(message = "메시지 내용을 입력해주세요.")
     private String content;

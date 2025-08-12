@@ -4,6 +4,8 @@ import com.example.dogmeeting.dto.UserProfileResponse;
 import com.example.dogmeeting.dto.UserUpdateRequest;
 import com.example.dogmeeting.dto.UserRankingResponse;
 import com.example.dogmeeting.dto.DogRankingResponse;
+import com.example.dogmeeting.dto.UserResponse;
+import com.example.dogmeeting.entity.User;
 import com.example.dogmeeting.service.UserService;
 import com.example.dogmeeting.service.DogService;
 import lombok.RequiredArgsConstructor;
@@ -23,23 +25,27 @@ public class HomeController {
 
     /**
      * 사용자 프로필 조회 (홈 화면용)
-     * GET /api/home/profile/{userId}
+     * GET /api/home/profile/{loginId}
      */
-    @GetMapping("/profile/{userId}")
-    public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable Long userId) {
-        UserProfileResponse profile = userService.getUserProfile(userId);
+    @GetMapping("/profile/{loginId}")
+    public ResponseEntity<UserProfileResponse> getUserProfileByLoginId(@PathVariable String loginId) {
+        // loginId로 사용자 ID 조회 후 프로필 조회
+        UserResponse userResponse = userService.getUserByLoginId(loginId);
+        UserProfileResponse profile = userService.getUserProfile(userResponse.getId());
         return ResponseEntity.ok(profile);
     }
 
     /**
      * 사용자 프로필 수정 (연필 버튼)
-     * PUT /api/home/profile/{userId}
+     * PUT /api/home/profile/{loginId}
      */
-    @PutMapping("/profile/{userId}")
-    public ResponseEntity<UserProfileResponse> updateUserProfile(
-            @PathVariable Long userId,
+    @PutMapping("/profile/{loginId}")
+    public ResponseEntity<UserProfileResponse> updateUserProfileByLoginId(
+            @PathVariable String loginId,
             @Valid @RequestBody UserUpdateRequest request) {
-        UserProfileResponse updatedProfile = userService.updateUserProfile(userId, request);
+        // loginId로 사용자 ID 조회 후 프로필 수정
+        UserResponse userResponse = userService.getUserByLoginId(loginId);
+        UserProfileResponse updatedProfile = userService.updateUserProfile(userResponse.getId(), request);
         return ResponseEntity.ok(updatedProfile);
     }
 
@@ -81,11 +87,12 @@ public class HomeController {
 
     /**
      * 특정 사용자 상세 정보 조회 (랭킹에서 사용자 클릭 시)
-     * GET /api/home/user/{userId}
+     * GET /api/home/user/{loginId}
      */
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<UserProfileResponse> getUserDetailProfile(@PathVariable Long userId) {
-        UserProfileResponse userDetail = userService.getUserDetailProfile(userId);
+    @GetMapping("/user/{loginId}")
+    public ResponseEntity<UserProfileResponse> getUserDetailProfileByLoginId(@PathVariable String loginId) {
+        UserResponse userResponse = userService.getUserByLoginId(loginId);
+        UserProfileResponse userDetail = userService.getUserDetailProfile(userResponse.getId());
         return ResponseEntity.ok(userDetail);
     }
 } 
