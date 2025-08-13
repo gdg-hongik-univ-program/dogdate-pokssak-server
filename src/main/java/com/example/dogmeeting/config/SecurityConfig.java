@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // API 서버에서는 일반적으로 비활성화
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // WebSocket을 위한 프레임 옵션 비활성화
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/users/**",  "/api/regions/**", "/api/swipes/**", "/api/matches/**").permitAll() // 유저, 지역, 스와이프, 매치 조회 경로는 허용
+                        .requestMatchers("/api/**").permitAll() // 유저, 지역, 스와이프, 매치 조회 경로는 허용
                         .requestMatchers("/api/dogs/**").permitAll() // 임시로 강아지 관련 모든 API 허용 (S3 테스트용)
                         .requestMatchers("/api/chat/**").permitAll() // 채팅 REST API 허용
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 접근 허용

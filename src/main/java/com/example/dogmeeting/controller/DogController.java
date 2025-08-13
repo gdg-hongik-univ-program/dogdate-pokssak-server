@@ -89,7 +89,8 @@ public class DogController {
             @Valid @RequestPart("dogInfo") DogCreateRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        dogService.updateDog(dogId, request, image); // 이미지 처리 로직은 서비스에서 담당
+        dogService.updateDog(dogId, request, image);
+
         return ResponseEntity.ok("강아지 정보가 성공적으로 업데이트되었습니다.");
     }
 
