@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
                 .authorizeHttpRequests(authorize -> authorize
                         // [수정] 보안을 위해 회원가입, 로그인 등 꼭 필요한 API만 허용합니다.
-                        .requestMatchers("/api/users/signup", "/api/users/login", "/api/dogs/users/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/ws-stomp/**").permitAll() // WebSocket 엔드포인트 허용
                         // 그 외 모든 요청은 인증이 필요하도록 설정합니다.
                         .anyRequest().authenticated()
