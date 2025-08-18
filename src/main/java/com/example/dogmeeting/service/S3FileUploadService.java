@@ -37,7 +37,7 @@ public class S3FileUploadService implements FileUploadService {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     /**
-     * 강아지 이미지를 S3에 업로드합니다..
+     * 강아지 이미지를 S3에 업로드합니다.
      * @param file 업로드할 이미지 파일
      * @param userId 사용자 ID
      * @param dogId 강아지 ID
@@ -119,6 +119,7 @@ public class S3FileUploadService implements FileUploadService {
      * @return 업로드된 파일의 전체 URL
      */
     private String uploadToS3(MultipartFile file, String fileName) {
+        log.info("Attempting to upload to S3: bucket={}, key={}", bucketName, fileName);
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
