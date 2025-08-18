@@ -2,6 +2,7 @@ package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.ChatMessageDto;
 import com.example.dogmeeting.dto.ChatMessageResponse;
+import com.example.dogmeeting.dto.ChatRoomResponse;
 import com.example.dogmeeting.entity.ChatMessage;
 import com.example.dogmeeting.entity.ChatRoom;
 import com.example.dogmeeting.entity.Match;
@@ -35,26 +36,28 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public ChatRoom createChatRoom(Long matchId) {
+    public ChatRoomResponse createChatRoom(Long matchId) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("매치를 찾을 수 없습니다."));
 
         // 이미 채팅방이 있는지 확인
         ChatRoom existingChatRoom = chatRoomRepository.findByMatchId(matchId);
         if (existingChatRoom != null) {
-            return existingChatRoom;
+            return ChatRoomResponse.from(existingChatRoom);
         }
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .match(match)
                 .build();
 
-        return chatRoomRepository.save(chatRoom);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        return ChatRoomResponse.from(savedChatRoom);
     }
 
     @Override
-    public ChatRoom findChatRoomByMatchId(Long matchId) {
-        return chatRoomRepository.findByMatchId(matchId);
+    public ChatRoomResponse findChatRoomByMatchId(Long matchId) {
+        ChatRoom chatRoom = chatRoomRepository.findByMatchId(matchId);
+        return chatRoom != null ? ChatRoomResponse.from(chatRoom) : null;
     }
 
     @Override

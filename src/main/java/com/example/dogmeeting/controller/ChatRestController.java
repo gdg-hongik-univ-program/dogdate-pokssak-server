@@ -1,7 +1,7 @@
 package com.example.dogmeeting.controller;
 
 import com.example.dogmeeting.dto.ChatMessageResponse;
-import com.example.dogmeeting.entity.ChatRoom;
+import com.example.dogmeeting.dto.ChatRoomResponse;
 import com.example.dogmeeting.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -45,14 +45,14 @@ public class ChatRestController {
     }
 
     @PostMapping("/room/match/{matchId}")
-    public ResponseEntity<ChatRoom> createChatRoom(@PathVariable Long matchId) {
-        ChatRoom chatRoom = chatService.createChatRoom(matchId);
+    public ResponseEntity<ChatRoomResponse> createChatRoom(@PathVariable Long matchId) {
+        ChatRoomResponse chatRoom = chatService.createChatRoom(matchId);
         return ResponseEntity.ok(chatRoom);
     }
 
     @GetMapping("/room/match/{matchId}")
-    public ResponseEntity<ChatRoom> getChatRoomByMatch(@PathVariable Long matchId) {
-        ChatRoom chatRoom = chatService.findChatRoomByMatchId(matchId);
+    public ResponseEntity<ChatRoomResponse> getChatRoomByMatch(@PathVariable Long matchId) {
+        ChatRoomResponse chatRoom = chatService.findChatRoomByMatchId(matchId);
         if (chatRoom != null) {
             return ResponseEntity.ok(chatRoom);
         }

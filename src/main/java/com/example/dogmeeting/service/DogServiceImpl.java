@@ -41,6 +41,7 @@ public class DogServiceImpl implements DogService {
                 .name(request.getName())
                 .breed(request.getBreed())
                 .age(request.getAge())
+                .gender(request.getGender())
                 .description(request.getDescription())
                 .photoUrl(request.getPhotoUrl())
                 .build();
@@ -106,7 +107,7 @@ public class DogServiceImpl implements DogService {
 
         // 강아지 정보 업데이트
         dog.updateInfo(request.getName(), request.getBreed(), request.getAge(),
-                      request.getDescription());
+                      request.getGender(), request.getDescription());
 
         // 이미지 파일이 제공된 경우 처리
         if (image != null && !image.isEmpty()) {

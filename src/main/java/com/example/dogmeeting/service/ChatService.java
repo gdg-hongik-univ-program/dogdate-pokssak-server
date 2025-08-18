@@ -2,15 +2,15 @@ package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.ChatMessageDto;
 import com.example.dogmeeting.dto.ChatMessageResponse;
-import com.example.dogmeeting.entity.ChatRoom;
+import com.example.dogmeeting.dto.ChatRoomResponse;
 
 import java.util.List;
 
 public interface ChatService {
     
-    ChatRoom createChatRoom(Long matchId);
+    ChatRoomResponse createChatRoom(Long matchId);
     
-    ChatRoom findChatRoomByMatchId(Long matchId);
+    ChatRoomResponse findChatRoomByMatchId(Long matchId);
     
     List<ChatMessageResponse> getChatHistory(Long chatroomId, Long userId);
     
