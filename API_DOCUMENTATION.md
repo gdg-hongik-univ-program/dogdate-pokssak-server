@@ -206,10 +206,12 @@ Content-Type: application/json
   "user2Id": 2,
   "user1Nickname": "사용자1",
   "user2Nickname": "사용자2",
-  "status": "ACTIVE",
+  "status": "MATCHED",
   "createdAt": "2025-01-28T10:00:00"
 }
 ```
+
+**참고**: 매칭 성공 시 채팅방이 자동으로 생성되며, 매치 상태가 "MATCHED"로 설정됩니다.
 
 **응답 (매칭 실패시)**
 ```http
@@ -299,6 +301,8 @@ PUT /api/matches/{matchId}/status?status=INACTIVE
 GET /api/matches/requests/sent/{userId}
 ```
 
+**설명**: 사용자가 보낸 대기 중인 매치 요청만 조회 (ACTIVE 상태만 반환)
+
 **응답**
 ```json
 [
@@ -318,6 +322,8 @@ GET /api/matches/requests/sent/{userId}
 ```http
 GET /api/matches/requests/received/{userId}
 ```
+
+**설명**: 사용자가 받은 대기 중인 매치 요청만 조회 (ACTIVE 상태만 반환)
 
 **응답**
 ```json
@@ -717,8 +723,9 @@ GET /api/regions/all
 - `FEMALE`: 여성
 
 ### Match Status
-- `ACTIVE`: 활성 매칭
-- `INACTIVE`: 비활성 매칭
+- `ACTIVE`: 대기 중인 매치 요청
+- `MATCHED`: 매칭 완료 (채팅방 생성됨)
+- `INACTIVE`: 거절/취소된 매치
 
 ### 페이징 파라미터
 - `page`: 페이지 번호 (0부터 시작, 기본값: 0)
@@ -735,8 +742,9 @@ GET /api/regions/all
 5. **좋아요 시스템**: 스와이프와 독립적으로 좋아요 기능을 사용할 수 있습니다.
 6. **채팅방 생성**: 채팅방은 상호 스와이프 시 자동으로 생성됩니다.
 7. **중복 스와이프**: 이미 스와이프한 사용자에게 재스와이프 시 400 에러가 반환됩니다.
-8. **매치 요청 조회**: 내가 보낸 매치 요청 현황을 확인할 수 있습니다.
-9. **채팅방 목록**: 사용자가 참여 중인 모든 채팅방을 조회할 수 있습니다.
+8. **매치 요청 조회**: 내가 보낸/받은 대기 중인 매치 요청만 조회됩니다.
+9. **매칭 완료**: 상호 스와이프 시 매치 상태가 MATCHED로 변경되어 요청 목록에서 제거됩니다.
+10. **채팅방 목록**: 사용자가 참여 중인 모든 채팅방을 조회할 수 있습니다.
 
 ---
 
