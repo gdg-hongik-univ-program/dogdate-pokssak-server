@@ -219,6 +219,14 @@ Content-Type: text/plain
 스와이프가 완료되었습니다.
 ```
 
+**응답 (중복 스와이프시)**
+```http
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain
+
+이미 스와이프한 사용자입니다.
+```
+
 ### 좋아요 토글
 ```http
 POST /api/swipes/like/{fromUserId}/{toUserId}
@@ -284,6 +292,46 @@ GET /api/matches/users/{userId}/active
 ### 매칭 상태 변경
 ```http
 PUT /api/matches/{matchId}/status?status=INACTIVE
+```
+
+### 보낸 매치 요청 조회
+```http
+GET /api/matches/requests/sent/{userId}
+```
+
+**응답**
+```json
+[
+  {
+    "id": 1,
+    "user1Id": 1,
+    "user2Id": 2,
+    "user1Nickname": "사용자1",
+    "user2Nickname": "사용자2",
+    "status": "ACTIVE",
+    "createdAt": "2025-01-28T10:00:00"
+  }
+]
+```
+
+### 받은 매치 요청 조회
+```http
+GET /api/matches/requests/received/{userId}
+```
+
+**응답**
+```json
+[
+  {
+    "id": 1,
+    "user1Id": 2,
+    "user2Id": 1,
+    "user1Nickname": "사용자2",
+    "user2Nickname": "사용자1",
+    "status": "ACTIVE",
+    "createdAt": "2025-01-28T10:00:00"
+  }
+]
 ```
 
 ---
@@ -526,20 +574,6 @@ Content-Type: text/plain
 메시지를 읽음 처리했습니다.
 ```
 
-#### 채팅방 생성 (매치 기반)
-```http
-POST /api/chat/room/match/{matchId}
-```
-
-**응답**
-```json
-{
-  "id": 1,
-  "matchId": 1,
-  "createdAt": "2025-08-01T10:00:00"
-}
-```
-
 #### 매치 기반 채팅방 조회
 ```http
 GET /api/chat/room/match/{matchId}
@@ -554,29 +588,45 @@ GET /api/chat/room/match/{matchId}
 }
 ```
 
+#### 사용자 채팅방 목록 조회
+```http
+GET /api/chat/users/{userId}/chatrooms
+```
+
+**응답**
+```json
+[
+  {
+    "id": 1,
+    "matchId": 1,
+    "createdAt": "2025-08-01T10:00:00"
+  },
+  {
+    "id": 2,
+    "matchId": 2,
+    "createdAt": "2025-08-01T11:00:00"
+  }
+]
+```
+
 ### 채팅 사용 시나리오
 
-1. **매치 성공 후 채팅방 생성**
-   ```http
-   POST /api/chat/room/match/1
-   ```
-
-2. **WebSocket 연결 및 채팅방 구독**
+1. **WebSocket 연결 및 채팅방 구독**
    ```javascript
    stompClient.subscribe('/sub/chat/room/1', handleMessage);
    ```
 
-3. **실시간 메시지 전송**
+2. **실시간 메시지 전송**
    ```javascript
    stompClient.send('/pub/chat/message', {}, JSON.stringify(message));
    ```
 
-4. **채팅 기록 조회**
+3. **채팅 기록 조회**
    ```http
    GET /api/chat/1/history?userId=123
    ```
 
-5. **읽음 처리**
+4. **읽음 처리**
    ```http
    PUT /api/chat/1/read?userId=123
    ```
@@ -683,6 +733,10 @@ GET /api/regions/all
 3. **페이징**: 랭킹 API들은 페이징을 지원합니다.
 4. **지역 필터링**: 매칭은 같은 지역(시/구) 내에서만 이루어집니다.
 5. **좋아요 시스템**: 스와이프와 독립적으로 좋아요 기능을 사용할 수 있습니다.
+6. **채팅방 생성**: 채팅방은 상호 스와이프 시 자동으로 생성됩니다.
+7. **중복 스와이프**: 이미 스와이프한 사용자에게 재스와이프 시 400 에러가 반환됩니다.
+8. **매치 요청 조회**: 내가 보낸 매치 요청 현황을 확인할 수 있습니다.
+9. **채팅방 목록**: 사용자가 참여 중인 모든 채팅방을 조회할 수 있습니다.
 
 ---
 

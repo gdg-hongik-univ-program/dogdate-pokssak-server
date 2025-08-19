@@ -55,7 +55,7 @@ public class SwipeServiceImpl implements SwipeService {
             Match match = Match.builder()
                     .user1(fromUser)
                     .user2(toUser)
-                    .status("ACTIVE")
+                    .status("MATCHED")  // 매칭 완료 상태로 변경
                     .build();
             matchRepository.save(match);
 

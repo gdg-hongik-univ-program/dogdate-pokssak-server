@@ -19,12 +19,16 @@ public class SwipeController {
     public ResponseEntity<?> swipeUser(
             @PathVariable Long fromUserId,
             @Valid @RequestBody SwipeRequest request) {
-        MatchResponse match = swipeService.swipeUser(fromUserId, request.getToUserId());
-        
-        if (match != null) {
-            return ResponseEntity.ok(match);
-        } else {
-            return ResponseEntity.ok("스와이프가 완료되었습니다.");
+        try {
+            MatchResponse match = swipeService.swipeUser(fromUserId, request.getToUserId());
+            
+            if (match != null) {
+                return ResponseEntity.ok(match);
+            } else {
+                return ResponseEntity.ok("스와이프가 완료되었습니다.");
+            }
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

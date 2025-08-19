@@ -28,4 +28,12 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     Optional<Match> findByUsers(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
     
     List<Match> findByStatus(String status);
+    
+    List<Match> findByUser1(User user1);
+    
+    List<Match> findByUser2(User user2);
+    
+    List<Match> findByUser1AndStatus(User user1, String status);
+    
+    List<Match> findByUser2AndStatus(User user2, String status);
 } 

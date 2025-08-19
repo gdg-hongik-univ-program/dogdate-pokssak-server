@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -166,5 +167,25 @@ public class ChatServiceImpl implements ChatService {
                 .sentAt(message.getSentAt())
                 .read(message.getRead())
                 .build();
+    }
+
+    @Override
+    public List<ChatRoomResponse> getUserChatRooms(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Match> userMatches = matchRepository.findByUser(user);
+        List<ChatRoom> chatRooms = new ArrayList<>();
+        
+        for (Match match : userMatches) {
+            ChatRoom chatRoom = chatRoomRepository.findByMatchId(match.getId());
+            if (chatRoom != null) {
+                chatRooms.add(chatRoom);
+            }
+        }
+
+        return chatRooms.stream()
+                .map(ChatRoomResponse::from)
+                .collect(Collectors.toList());
     }
 }
