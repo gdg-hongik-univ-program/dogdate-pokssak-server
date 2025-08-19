@@ -188,6 +188,8 @@ DELETE /api/dogs/{dogId}
 
 ## 💝 스와이프/좋아요 API (`/api/swipes`)
 
+### 스와이프 기본 기능
+
 ### 스와이프 실행
 ```http
 POST /api/swipes/users/{fromUserId}
@@ -260,6 +262,64 @@ GET /api/swipes/users/{fromUserId}/check/{toUserId}
 **응답**
 ```json
 false
+```
+
+### 스와이프 기록 조회
+
+#### 보낸 스와이프 목록 조회
+```http
+GET /api/swipes/sent/{userId}
+```
+
+**설명**: 사용자가 다른 사용자들에게 보낸 모든 스와이프 목록 조회
+
+**응답**
+```json
+[
+  {
+    "id": 12,
+    "fromUserId": 15,
+    "fromUserNickname": "서울강남구100",
+    "toUserId": 7,
+    "toUserNickname": "별명",
+    "isLike": true,
+    "swipedAt": "2025-08-19T22:33:30.568949",
+    "likeAt": "2025-08-19T23:39:37.082776"
+  },
+  {
+    "id": 14,
+    "fromUserId": 15,
+    "fromUserNickname": "서울강남구100",
+    "toUserId": 14,
+    "toUserNickname": "서울강남구99",
+    "isLike": false,
+    "swipedAt": "2025-08-19T23:44:39.321717",
+    "likeAt": null
+  }
+]
+```
+
+#### 받은 스와이프 목록 조회
+```http
+GET /api/swipes/received/{userId}
+```
+
+**설명**: 다른 사용자들이 나에게 보낸 모든 스와이프 목록 조회
+
+**응답**
+```json
+[
+  {
+    "id": 13,
+    "fromUserId": 7,
+    "fromUserNickname": "별명",
+    "toUserId": 15,
+    "toUserNickname": "서울강남구100",
+    "isLike": true,
+    "swipedAt": "2025-08-19T22:35:15.123456",
+    "likeAt": "2025-08-19T22:35:15.123456"
+  }
+]
 ```
 
 ---
@@ -727,6 +787,16 @@ GET /api/regions/all
 - `MATCHED`: 매칭 완료 (채팅방 생성됨)
 - `INACTIVE`: 거절/취소된 매치
 
+### Swipe Response 필드
+- `id`: 스와이프 고유 ID
+- `fromUserId`: 스와이프를 보낸 사용자 ID
+- `fromUserNickname`: 스와이프를 보낸 사용자 닉네임
+- `toUserId`: 스와이프를 받은 사용자 ID
+- `toUserNickname`: 스와이프를 받은 사용자 닉네임
+- `isLike`: 좋아요 여부 (true/false)
+- `swipedAt`: 스와이프한 시간
+- `likeAt`: 좋아요를 누른 시간 (좋아요가 아닌 경우 null)
+
 ### 페이징 파라미터
 - `page`: 페이지 번호 (0부터 시작, 기본값: 0)
 - `size`: 페이지 크기 (기본값: 10)
@@ -744,7 +814,9 @@ GET /api/regions/all
 7. **중복 스와이프**: 이미 스와이프한 사용자에게 재스와이프 시 400 에러가 반환됩니다.
 8. **매치 요청 조회**: 내가 보낸/받은 대기 중인 매치 요청만 조회됩니다.
 9. **매칭 완료**: 상호 스와이프 시 매치 상태가 MATCHED로 변경되어 요청 목록에서 제거됩니다.
-10. **채팅방 목록**: 사용자가 참여 중인 모든 채팅방을 조회할 수 있습니다.
+10. **스와이프 기록 조회**: 내가 보낸/받은 모든 스와이프 기록을 확인할 수 있습니다.
+11. **좋아요 추적**: 스와이프에 포함된 좋아요 여부와 시간을 추적할 수 있습니다.
+12. **채팅방 목록**: 사용자가 참여 중인 모든 채팅방을 조회할 수 있습니다.
 
 ---
 

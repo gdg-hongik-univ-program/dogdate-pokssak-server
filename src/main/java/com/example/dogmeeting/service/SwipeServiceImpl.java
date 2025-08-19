@@ -1,6 +1,7 @@
 package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.MatchResponse;
+import com.example.dogmeeting.dto.SwipeResponse;
 import com.example.dogmeeting.entity.Match;
 import com.example.dogmeeting.entity.Swipe;
 import com.example.dogmeeting.entity.User;
@@ -14,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -115,5 +118,27 @@ public class SwipeServiceImpl implements SwipeService {
 
         Optional<Swipe> swipe = swipeRepository.findByFromUserAndToUser(fromUser, toUser);
         return swipe.map(Swipe::getLike).orElse(false);
+    }
+
+    @Override
+    public List<SwipeResponse> getSentSwipes(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Swipe> sentSwipes = swipeRepository.findByFromUser(user);
+        return sentSwipes.stream()
+                .map(SwipeResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SwipeResponse> getReceivedSwipes(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Swipe> receivedSwipes = swipeRepository.findByToUser(user);
+        return receivedSwipes.stream()
+                .map(SwipeResponse::from)
+                .collect(Collectors.toList());
     }
 } 
