@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -30,9 +32,11 @@ public class DogServiceImpl implements DogService {
     private final SwipeRepository swipeRepository;
     private final FileUploadService fileUploadService;
 
+    private static final Duration PRESIGNED_URL_DURATION = Duration.ofHours(1); // Presigned URL 유효 시간
+
     @Override
     @Transactional
-    public Long createDog(Long userId, DogCreateRequest request) {
+    public Long createDog(Long userId, DogCreateRequest request, MultipartFile image) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
@@ -43,10 +47,15 @@ public class DogServiceImpl implements DogService {
                 .age(request.getAge())
                 .gender(request.getGender())
                 .description(request.getDescription())
-                .photoUrl(request.getPhotoUrl())
-                .build();
+                .build(); // photoUrl은 여기서 설정하지 않고, 이미지 업로드 후 업데이트
 
-        dogRepository.save(dog);
+        dogRepository.save(dog); // 먼저 강아지 정보 저장하여 dogId 확보
+
+        if (image != null && !image.isEmpty()) {
+            String imageKey = fileUploadService.uploadDogImage(image, userId, dog.getId());
+            dog.updatePhotoUrl(imageKey); // 저장된 dogId를 사용하여 이미지 키 업데이트
+        }
+
         return dog.getId();
     }
 
@@ -54,54 +63,27 @@ public class DogServiceImpl implements DogService {
     public DogResponse getDogById(Long dogId) {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
-        return DogResponse.from(dog);
+        return toDogResponseWithPresignedUrl(dog);
     }
 
     @Override
     public DogProfileResponse getDogProfile(Long dogId) {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
-        
-        User owner = dog.getUser();
-        
-        // 좋아요 수 계산 (해당 강아지의 주인이 받은 좋아요)
-        int likeCount = swipeRepository.countByToUserAndLike(owner, true);
-        
-        // 순위는 임시로 0 (좋아요 수 기준 랭킹 시스템과 연계 시 구현)
-        int rank = 0;
-        
-        // 칭호는 임시로 빈 리스트 (Title 시스템과 연계 시 구현)
-        List<String> titles = List.of();
-        
-        return DogProfileResponse.builder()
-                .dogId(dog.getId())
-                .name(dog.getName())
-                .breed(dog.getBreed())
-                .age(dog.getAge())
-                .description(dog.getDescription())
-                .photoUrl(dog.getPhotoUrl())
-                .ownerId(owner.getId())
-                .ownerNickname(owner.getNickname())
-                .ownerGender(owner.getGender())
-                .ownerCity(owner.getCity())
-                .ownerDistrict(owner.getDistrict())
-                .likeCount(likeCount)
-                .rank(rank)
-                .titles(titles)
-                .build();
+        return toDogProfileResponseWithPresignedUrl(dog);
     }
 
     @Override
     public List<DogResponse> getDogsByUserId(Long userId) {
         List<Dog> dogs = dogRepository.findByUserId(userId);
         return dogs.stream()
-                .map(DogResponse::from)
+                .map(this::toDogResponseWithPresignedUrl)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public void updateDog(Long dogId, DogCreateRequest request, org.springframework.web.multipart.MultipartFile image) {
+    public void updateDog(Long dogId, DogCreateRequest request, MultipartFile image) {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
 
@@ -111,24 +93,27 @@ public class DogServiceImpl implements DogService {
 
         // 이미지 파일이 제공된 경우 처리
         if (image != null && !image.isEmpty()) {
-            // 기존 이미지가 있다면 삭제
+            // 기존 이미지가 있다면 삭제 (photoUrl은 이제 객체 키)
             if (dog.getPhotoUrl() != null && !dog.getPhotoUrl().isEmpty()) {
                 fileUploadService.deleteFile(dog.getPhotoUrl());
             }
             // 새 이미지 업로드
-            String imageUrl = fileUploadService.uploadDogImage(image, dog.getUser().getId(), dogId);
-            dog.updatePhotoUrl(imageUrl);
+            String imageKey = fileUploadService.uploadDogImage(image, dog.getUser().getId(), dogId);
+            dog.updatePhotoUrl(imageKey);
+        } else {
+            // 이미지가 제공되지 않았을 때, 기존 이미지를 유지할지 여부는 정책에 따라 달라짐.
+            // 여기서는 이미지가 없으면 기존 이미지를 유지하는 것으로 가정.
+            // 만약 이미지를 삭제하고 싶다면 deleteDogImage 엔드포인트를 사용해야 함.
         }
     }
 
     @Override
     @Transactional
-    public void updateDogImage(Long dogId, String imageUrl) {
+    public void updateDogImage(Long dogId, String imageKey) {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
         
-        // Dog 엔티티에 이미지 URL 업데이트 메서드 필요
-        dog.updatePhotoUrl(imageUrl);
+        dog.updatePhotoUrl(imageKey);
     }
 
     @Override
@@ -136,7 +121,24 @@ public class DogServiceImpl implements DogService {
     public void deleteDog(Long dogId) {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
+        
+        // 강아지 삭제 시 연결된 이미지도 S3에서 삭제
+        if (dog.getPhotoUrl() != null && !dog.getPhotoUrl().isEmpty()) {
+            fileUploadService.deleteFile(dog.getPhotoUrl());
+        }
         dogRepository.delete(dog);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDogImage(Long dogId) {
+        Dog dog = dogRepository.findById(dogId)
+                .orElseThrow(() -> new UserNotFoundException("강아지를 찾을 수 없습니다."));
+
+        if (dog.getPhotoUrl() != null && !dog.getPhotoUrl().isEmpty()) {
+            fileUploadService.deleteFile(dog.getPhotoUrl());
+            dog.updatePhotoUrl(null); // DB에서도 이미지 URL 제거
+        }
     }
 
     // 랭킹 관련 메서드들 구현
@@ -160,12 +162,18 @@ public class DogServiceImpl implements DogService {
                     
                     Dog mainDog = user.getDogs().get(0);
                     
+                    // DogRankingResponse에 Presigned URL 설정
+                    String photoUrl = null;
+                    if (mainDog.getPhotoUrl() != null && !mainDog.getPhotoUrl().isEmpty()) {
+                        photoUrl = fileUploadService.generatePresignedGetUrl(mainDog.getPhotoUrl(), PRESIGNED_URL_DURATION);
+                    }
+
                     return DogRankingResponse.builder()
                             .dogId(mainDog.getId())
                             .dogName(mainDog.getName())
                             .breed(mainDog.getBreed())
                             .age(mainDog.getAge())
-                            .photoUrl(mainDog.getPhotoUrl())
+                            .photoUrl(photoUrl) // Presigned URL 설정
                             .description(mainDog.getDescription())
                             .ownerId(user.getId())
                             .ownerNickname(user.getNickname())
@@ -199,12 +207,18 @@ public class DogServiceImpl implements DogService {
                     
                     Dog mainDog = user.getDogs().get(0);
                     
+                    // DogRankingResponse에 Presigned URL 설정
+                    String photoUrl = null;
+                    if (mainDog.getPhotoUrl() != null && !mainDog.getPhotoUrl().isEmpty()) {
+                        photoUrl = fileUploadService.generatePresignedGetUrl(mainDog.getPhotoUrl(), PRESIGNED_URL_DURATION);
+                    }
+
                     return DogRankingResponse.builder()
                             .dogId(mainDog.getId())
                             .dogName(mainDog.getName())
                             .breed(mainDog.getBreed())
                             .age(mainDog.getAge())
-                            .photoUrl(mainDog.getPhotoUrl())
+                            .photoUrl(photoUrl) // Presigned URL 설정
                             .description(mainDog.getDescription())
                             .ownerId(user.getId())
                             .ownerNickname(user.getNickname())
@@ -235,4 +249,51 @@ public class DogServiceImpl implements DogService {
                         .build())
                 .collect(Collectors.toList());
     }
-} 
+
+    // 헬퍼 메소드: Dog 엔티티를 DogResponse DTO로 변환하며 Presigned URL 설정
+    private DogResponse toDogResponseWithPresignedUrl(Dog dog) {
+        String photoUrl = null;
+        if (dog.getPhotoUrl() != null && !dog.getPhotoUrl().isEmpty()) {
+            photoUrl = fileUploadService.generatePresignedGetUrl(dog.getPhotoUrl(), PRESIGNED_URL_DURATION);
+        }
+        return DogResponse.builder()
+                .id(dog.getId())
+                .name(dog.getName())
+                .breed(dog.getBreed())
+                .age(dog.getAge())
+                .gender(dog.getGender()) // Presigned URL 설정
+                .description(dog.getDescription())
+                .photoUrl(photoUrl) // Presigned URL 설정
+                .build();
+    }
+
+    // 헬퍼 메소드: Dog 엔티티를 DogProfileResponse DTO로 변환하며 Presigned URL 설정
+    private DogProfileResponse toDogProfileResponseWithPresignedUrl(Dog dog) {
+        User owner = dog.getUser();
+        int likeCount = swipeRepository.countByToUserAndLike(owner, true);
+        int rank = 0; // 임시
+        List<String> titles = List.of(); // 임시
+
+        String photoUrl = null;
+        if (dog.getPhotoUrl() != null && !dog.getPhotoUrl().isEmpty()) {
+            photoUrl = fileUploadService.generatePresignedGetUrl(dog.getPhotoUrl(), PRESIGNED_URL_DURATION);
+        }
+
+        return DogProfileResponse.builder()
+                .dogId(dog.getId())
+                .name(dog.getName())
+                .breed(dog.getBreed())
+                .age(dog.getAge())
+                .description(dog.getDescription())
+                .photoUrl(photoUrl) // Presigned URL 설정
+                .ownerId(owner.getId())
+                .ownerNickname(owner.getNickname())
+                .ownerGender(owner.getGender())
+                .ownerCity(owner.getCity())
+                .ownerDistrict(owner.getDistrict())
+                .likeCount(likeCount)
+                .rank(rank)
+                .titles(titles)
+                .build();
+    }
+}  
