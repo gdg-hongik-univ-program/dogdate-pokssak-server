@@ -59,4 +59,30 @@ public class MatchController {
 
         return ResponseEntity.ok("매칭 상태가 업데이트되었습니다.");
     }
+
+    @GetMapping("/requests/sent/{userId}")
+    public ResponseEntity<List<MatchResponse>> getSentMatchRequests(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Match> sentRequests = matchRepository.findByUser1AndStatus(user, "ACTIVE");
+        List<MatchResponse> responses = sentRequests.stream()
+                .map(MatchResponse::from)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/requests/received/{userId}")
+    public ResponseEntity<List<MatchResponse>> getReceivedMatchRequests(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Match> receivedRequests = matchRepository.findByUser2AndStatus(user, "ACTIVE");
+        List<MatchResponse> responses = receivedRequests.stream()
+                .map(MatchResponse::from)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responses);
+    }
 } 

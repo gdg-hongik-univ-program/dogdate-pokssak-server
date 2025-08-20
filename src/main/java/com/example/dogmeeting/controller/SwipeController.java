@@ -2,11 +2,14 @@ package com.example.dogmeeting.controller;
 
 import com.example.dogmeeting.dto.MatchResponse;
 import com.example.dogmeeting.dto.SwipeRequest;
+import com.example.dogmeeting.dto.SwipeResponse;
 import com.example.dogmeeting.service.SwipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/swipes")
@@ -19,12 +22,16 @@ public class SwipeController {
     public ResponseEntity<?> swipeUser(
             @PathVariable Long fromUserId,
             @Valid @RequestBody SwipeRequest request) {
-        MatchResponse match = swipeService.swipeUser(fromUserId, request.getToUserId());
-        
-        if (match != null) {
-            return ResponseEntity.ok(match);
-        } else {
-            return ResponseEntity.ok("스와이프가 완료되었습니다.");
+        try {
+            MatchResponse match = swipeService.swipeUser(fromUserId, request.getToUserId());
+            
+            if (match != null) {
+                return ResponseEntity.ok(match);
+            } else {
+                return ResponseEntity.ok("스와이프가 완료되었습니다.");
+            }
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -60,5 +67,25 @@ public class SwipeController {
             @PathVariable Long toUserId) {
         boolean hasSwiped = swipeService.hasAlreadySwiped(fromUserId, toUserId);
         return ResponseEntity.ok(hasSwiped);
+    }
+
+    /**
+     * 내가 스와이프한 목록 조회
+     * GET /api/swipes/sent/{userId}
+     */
+    @GetMapping("/sent/{userId}")
+    public ResponseEntity<List<SwipeResponse>> getSentSwipes(@PathVariable Long userId) {
+        List<SwipeResponse> sentSwipes = swipeService.getSentSwipes(userId);
+        return ResponseEntity.ok(sentSwipes);
+    }
+
+    /**
+     * 내가 받은 스와이프 목록 조회
+     * GET /api/swipes/received/{userId}
+     */
+    @GetMapping("/received/{userId}")
+    public ResponseEntity<List<SwipeResponse>> getReceivedSwipes(@PathVariable Long userId) {
+        List<SwipeResponse> receivedSwipes = swipeService.getReceivedSwipes(userId);
+        return ResponseEntity.ok(receivedSwipes);
     }
 } 

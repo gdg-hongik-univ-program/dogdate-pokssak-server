@@ -19,4 +19,6 @@ public interface ChatService {
     void markMessagesAsRead(Long chatroomId, Long userId);
     
     int getUnreadMessageCount(Long chatroomId, Long userId);
+    
+    List<ChatRoomResponse> getUserChatRooms(Long userId);
 }
