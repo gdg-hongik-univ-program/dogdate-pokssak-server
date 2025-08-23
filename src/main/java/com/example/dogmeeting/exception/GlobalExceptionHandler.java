@@ -6,8 +6,8 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +47,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNSUPPORTED_MEDIA_TYPE); // 415 Unsupported Media Type
     }
+
 
     // 파라미터 타입 변환 오류 처리 (예: "undefined"를 Long으로 변환할 수 없는 경우)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

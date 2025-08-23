@@ -1,7 +1,9 @@
 package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.MatchResponse;
+
 import com.example.dogmeeting.dto.SwipeResponse;
+
 import com.example.dogmeeting.entity.Match;
 import com.example.dogmeeting.entity.Swipe;
 import com.example.dogmeeting.entity.User;
