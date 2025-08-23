@@ -102,7 +102,7 @@ class ChatServiceImplTest {
     void createChatRoom_Success() {
         // Given
         when(matchRepository.findById(1L)).thenReturn(Optional.of(match));
-        when(chatRoomRepository.findByMatchId(1L)).thenReturn(Optional.empty());
+        when(chatRoomRepository.findByMatchId(1L)).thenReturn(null);
         when(chatRoomRepository.save(any(ChatRoom.class))).thenReturn(chatRoom);
 
         // When
@@ -119,13 +119,13 @@ class ChatServiceImplTest {
     void createChatRoom_AlreadyExists() {
         // Given
         when(matchRepository.findById(1L)).thenReturn(Optional.of(match));
-        when(chatRoomRepository.findByMatchId(1L)).thenReturn(Optional.of(chatRoom));
+        when(chatRoomRepository.findByMatchId(1L)).thenReturn(chatRoom);
 
         // When
         ChatRoomResponse result = chatService.createChatRoom(1L);
 
         // Then
-        assertThat(result.getChatRoomId()).isEqualTo(chatRoom.getId());
+        assertThat(result.getId()).isEqualTo(chatRoom.getId());
         verify(chatRoomRepository, never()).save(any(ChatRoom.class));
     }
 

@@ -84,7 +84,7 @@ class ChatIntegrationTest {
 
         // Then - 채팅방이 정상적으로 생성됨
         assertThat(chatRoom).isNotNull();
-        assertThat(chatRoom.getChatRoomId()).isNotNull();
+        assertThat(chatRoom.getId()).isNotNull();
         assertThat(chatRoom.getMatchId()).isEqualTo(match.getId());
 
         // When - 매치 기반 채팅방 조회
@@ -92,7 +92,7 @@ class ChatIntegrationTest {
 
         // Then - 동일한 채팅방이 조회됨
         assertThat(foundChatRoom).isNotNull();
-        assertThat(foundChatRoom.getChatRoomId()).isEqualTo(chatRoom.getChatRoomId());
+        assertThat(foundChatRoom.getId()).isEqualTo(chatRoom.getId());
     }
 
     @Test
@@ -103,7 +103,7 @@ class ChatIntegrationTest {
 
         // When - 메시지 전송
         ChatMessageDto messageDto = ChatMessageDto.builder()
-                .chatroomId(chatRoom.getChatRoomId())
+                .chatroomId(chatRoom.getId())
                 .senderId(user1.getId())
                 .content("안녕하세요! 테스트 메시지입니다.")
                 .type(MessageType.CHAT)
@@ -112,7 +112,7 @@ class ChatIntegrationTest {
         chatService.sendMessage(messageDto);
 
         // Then - 채팅 기록 조회
-        var chatHistory = chatService.getChatHistory(chatRoom.getChatRoomId(), user1.getId());
+        var chatHistory = chatService.getChatHistory(chatRoom.getId(), user1.getId());
 
         assertThat(chatHistory).hasSize(1);
         assertThat(chatHistory.get(0).getContent()).isEqualTo("안녕하세요! 테스트 메시지입니다.");
@@ -127,14 +127,14 @@ class ChatIntegrationTest {
         ChatRoomResponse chatRoom = chatService.createChatRoom(match.getId());
 
         ChatMessageDto messageDto1 = ChatMessageDto.builder()
-                .chatroomId(chatRoom.getChatRoomId())
+                .chatroomId(chatRoom.getId())
                 .senderId(user1.getId())
                 .content("첫 번째 메시지")
                 .type(MessageType.CHAT)
                 .build();
 
         ChatMessageDto messageDto2 = ChatMessageDto.builder()
-                .chatroomId(chatRoom.getChatRoomId())
+                .chatroomId(chatRoom.getId())
                 .senderId(user1.getId())
                 .content("두 번째 메시지")
                 .type(MessageType.CHAT)
@@ -144,16 +144,16 @@ class ChatIntegrationTest {
         chatService.sendMessage(messageDto2);
 
         // When - user2가 읽지 않은 메시지 수 조회
-        int unreadCount = chatService.getUnreadMessageCount(chatRoom.getChatRoomId(), user2.getId());
+        int unreadCount = chatService.getUnreadMessageCount(chatRoom.getId(), user2.getId());
 
         // Then - 2개의 읽지 않은 메시지가 있음
         assertThat(unreadCount).isEqualTo(2);
 
         // When - user2가 메시지를 읽음 처리
-        chatService.markMessagesAsRead(chatRoom.getChatRoomId(), user2.getId());
+        chatService.markMessagesAsRead(chatRoom.getId(), user2.getId());
 
         // Then - 읽지 않은 메시지가 0개가 됨
-        int unreadCountAfterRead = chatService.getUnreadMessageCount(chatRoom.getChatRoomId(), user2.getId());
+        int unreadCountAfterRead = chatService.getUnreadMessageCount(chatRoom.getId(), user2.getId());
         assertThat(unreadCountAfterRead).isEqualTo(0);
     }
 
@@ -177,7 +177,7 @@ class ChatIntegrationTest {
 
         // When & Then - 권한 없는 사용자가 채팅 기록 조회 시 예외 발생
         Long unauthorizedUserId = unauthorizedUser.getId();
-        assertThatThrownBy(() -> chatService.getChatHistory(chatRoom.getChatRoomId(), unauthorizedUserId))
+        assertThatThrownBy(() -> chatService.getChatHistory(chatRoom.getId(), unauthorizedUserId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("해당 채팅방에 접근할 권한이 없습니다.");
     }
@@ -190,7 +190,7 @@ class ChatIntegrationTest {
         ChatRoomResponse chatRoom2 = chatService.createChatRoom(match.getId());
 
         // Then - 동일한 채팅방이 반환됨
-        assertThat(chatRoom1.getChatRoomId()).isEqualTo(chatRoom2.getChatRoomId());
+        assertThat(chatRoom1.getId()).isEqualTo(chatRoom2.getId());
 
         // DB에는 하나의 채팅방만 존재
         long chatRoomCount = chatRoomRepository.count();
