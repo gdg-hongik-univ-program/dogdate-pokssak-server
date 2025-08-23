@@ -1,7 +1,9 @@
 package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.MatchResponse;
-import com.example.dogmeeting.dto.UserResponse;
+
+import com.example.dogmeeting.dto.SwipeResponse;
+
 import com.example.dogmeeting.entity.Match;
 import com.example.dogmeeting.entity.Swipe;
 import com.example.dogmeeting.entity.User;
@@ -58,7 +60,7 @@ public class SwipeServiceImpl implements SwipeService {
             Match match = Match.builder()
                     .user1(fromUser)
                     .user2(toUser)
-                    .status("ACTIVE")
+                    .status("MATCHED")  // 매칭 완료 상태로 변경
                     .build();
             matchRepository.save(match);
 
@@ -121,19 +123,24 @@ public class SwipeServiceImpl implements SwipeService {
     }
 
     @Override
-    public List<UserResponse> getReceivedSwipes(Long userId) {
-        User toUser = userRepository.findById(userId)
+    public List<SwipeResponse> getSentSwipes(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
-        List<Swipe> receivedSwipes = swipeRepository.findByToUser(toUser);
+        List<Swipe> sentSwipes = swipeRepository.findByFromUser(user);
+        return sentSwipes.stream()
+                .map(SwipeResponse::from)
+                .collect(Collectors.toList());
+    }
 
+    @Override
+    public List<SwipeResponse> getReceivedSwipes(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Swipe> receivedSwipes = swipeRepository.findByToUser(user);
         return receivedSwipes.stream()
-                .filter(swipe -> {
-                    User fromUser = swipe.getFromUser();
-                    // Check if a match exists between fromUser and toUser
-                    return matchRepository.findByUsers(fromUser.getId(), toUser.getId()).isEmpty();
-                })
-                .map(swipe -> UserResponse.from(swipe.getFromUser()))
+                .map(SwipeResponse::from)
                 .collect(Collectors.toList());
     }
 } 

@@ -188,6 +188,8 @@ DELETE /api/dogs/{dogId}
 
 ## 💝 스와이프/좋아요 API (`/api/swipes`)
 
+### 스와이프 기본 기능
+
 ### 스와이프 실행
 ```http
 POST /api/swipes/users/{fromUserId}
@@ -206,10 +208,12 @@ Content-Type: application/json
   "user2Id": 2,
   "user1Nickname": "사용자1",
   "user2Nickname": "사용자2",
-  "status": "ACTIVE",
+  "status": "MATCHED",
   "createdAt": "2025-01-28T10:00:00"
 }
 ```
+
+**참고**: 매칭 성공 시 채팅방이 자동으로 생성되며, 매치 상태가 "MATCHED"로 설정됩니다.
 
 **응답 (매칭 실패시)**
 ```http
@@ -217,6 +221,14 @@ HTTP/1.1 200 OK
 Content-Type: text/plain
 
 스와이프가 완료되었습니다.
+```
+
+**응답 (중복 스와이프시)**
+```http
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain
+
+이미 스와이프한 사용자입니다.
 ```
 
 ### 좋아요 토글
@@ -252,6 +264,64 @@ GET /api/swipes/users/{fromUserId}/check/{toUserId}
 false
 ```
 
+### 스와이프 기록 조회
+
+#### 보낸 스와이프 목록 조회
+```http
+GET /api/swipes/sent/{userId}
+```
+
+**설명**: 사용자가 다른 사용자들에게 보낸 모든 스와이프 목록 조회
+
+**응답**
+```json
+[
+  {
+    "id": 12,
+    "fromUserId": 15,
+    "fromUserNickname": "서울강남구100",
+    "toUserId": 7,
+    "toUserNickname": "별명",
+    "isLike": true,
+    "swipedAt": "2025-08-19T22:33:30.568949",
+    "likeAt": "2025-08-19T23:39:37.082776"
+  },
+  {
+    "id": 14,
+    "fromUserId": 15,
+    "fromUserNickname": "서울강남구100",
+    "toUserId": 14,
+    "toUserNickname": "서울강남구99",
+    "isLike": false,
+    "swipedAt": "2025-08-19T23:44:39.321717",
+    "likeAt": null
+  }
+]
+```
+
+#### 받은 스와이프 목록 조회
+```http
+GET /api/swipes/received/{userId}
+```
+
+**설명**: 다른 사용자들이 나에게 보낸 모든 스와이프 목록 조회
+
+**응답**
+```json
+[
+  {
+    "id": 13,
+    "fromUserId": 7,
+    "fromUserNickname": "별명",
+    "toUserId": 15,
+    "toUserNickname": "서울강남구100",
+    "isLike": true,
+    "swipedAt": "2025-08-19T22:35:15.123456",
+    "likeAt": "2025-08-19T22:35:15.123456"
+  }
+]
+```
+
 ---
 
 ## 💕 매칭 관리 API (`/api/matches`)
@@ -284,6 +354,50 @@ GET /api/matches/users/{userId}/active
 ### 매칭 상태 변경
 ```http
 PUT /api/matches/{matchId}/status?status=INACTIVE
+```
+
+### 보낸 매치 요청 조회
+```http
+GET /api/matches/requests/sent/{userId}
+```
+
+**설명**: 사용자가 보낸 대기 중인 매치 요청만 조회 (ACTIVE 상태만 반환)
+
+**응답**
+```json
+[
+  {
+    "id": 1,
+    "user1Id": 1,
+    "user2Id": 2,
+    "user1Nickname": "사용자1",
+    "user2Nickname": "사용자2",
+    "status": "ACTIVE",
+    "createdAt": "2025-01-28T10:00:00"
+  }
+]
+```
+
+### 받은 매치 요청 조회
+```http
+GET /api/matches/requests/received/{userId}
+```
+
+**설명**: 사용자가 받은 대기 중인 매치 요청만 조회 (ACTIVE 상태만 반환)
+
+**응답**
+```json
+[
+  {
+    "id": 1,
+    "user1Id": 2,
+    "user2Id": 1,
+    "user1Nickname": "사용자2",
+    "user2Nickname": "사용자1",
+    "status": "ACTIVE",
+    "createdAt": "2025-01-28T10:00:00"
+  }
+]
 ```
 
 ---
@@ -526,20 +640,6 @@ Content-Type: text/plain
 메시지를 읽음 처리했습니다.
 ```
 
-#### 채팅방 생성 (매치 기반)
-```http
-POST /api/chat/room/match/{matchId}
-```
-
-**응답**
-```json
-{
-  "id": 1,
-  "matchId": 1,
-  "createdAt": "2025-08-01T10:00:00"
-}
-```
-
 #### 매치 기반 채팅방 조회
 ```http
 GET /api/chat/room/match/{matchId}
@@ -554,29 +654,45 @@ GET /api/chat/room/match/{matchId}
 }
 ```
 
+#### 사용자 채팅방 목록 조회
+```http
+GET /api/chat/users/{userId}/chatrooms
+```
+
+**응답**
+```json
+[
+  {
+    "id": 1,
+    "matchId": 1,
+    "createdAt": "2025-08-01T10:00:00"
+  },
+  {
+    "id": 2,
+    "matchId": 2,
+    "createdAt": "2025-08-01T11:00:00"
+  }
+]
+```
+
 ### 채팅 사용 시나리오
 
-1. **매치 성공 후 채팅방 생성**
-   ```http
-   POST /api/chat/room/match/1
-   ```
-
-2. **WebSocket 연결 및 채팅방 구독**
+1. **WebSocket 연결 및 채팅방 구독**
    ```javascript
    stompClient.subscribe('/sub/chat/room/1', handleMessage);
    ```
 
-3. **실시간 메시지 전송**
+2. **실시간 메시지 전송**
    ```javascript
    stompClient.send('/pub/chat/message', {}, JSON.stringify(message));
    ```
 
-4. **채팅 기록 조회**
+3. **채팅 기록 조회**
    ```http
    GET /api/chat/1/history?userId=123
    ```
 
-5. **읽음 처리**
+4. **읽음 처리**
    ```http
    PUT /api/chat/1/read?userId=123
    ```
@@ -667,8 +783,19 @@ GET /api/regions/all
 - `FEMALE`: 여성
 
 ### Match Status
-- `ACTIVE`: 활성 매칭
-- `INACTIVE`: 비활성 매칭
+- `ACTIVE`: 대기 중인 매치 요청
+- `MATCHED`: 매칭 완료 (채팅방 생성됨)
+- `INACTIVE`: 거절/취소된 매치
+
+### Swipe Response 필드
+- `id`: 스와이프 고유 ID
+- `fromUserId`: 스와이프를 보낸 사용자 ID
+- `fromUserNickname`: 스와이프를 보낸 사용자 닉네임
+- `toUserId`: 스와이프를 받은 사용자 ID
+- `toUserNickname`: 스와이프를 받은 사용자 닉네임
+- `isLike`: 좋아요 여부 (true/false)
+- `swipedAt`: 스와이프한 시간
+- `likeAt`: 좋아요를 누른 시간 (좋아요가 아닌 경우 null)
 
 ### 페이징 파라미터
 - `page`: 페이지 번호 (0부터 시작, 기본값: 0)
@@ -683,6 +810,13 @@ GET /api/regions/all
 3. **페이징**: 랭킹 API들은 페이징을 지원합니다.
 4. **지역 필터링**: 매칭은 같은 지역(시/구) 내에서만 이루어집니다.
 5. **좋아요 시스템**: 스와이프와 독립적으로 좋아요 기능을 사용할 수 있습니다.
+6. **채팅방 생성**: 채팅방은 상호 스와이프 시 자동으로 생성됩니다.
+7. **중복 스와이프**: 이미 스와이프한 사용자에게 재스와이프 시 400 에러가 반환됩니다.
+8. **매치 요청 조회**: 내가 보낸/받은 대기 중인 매치 요청만 조회됩니다.
+9. **매칭 완료**: 상호 스와이프 시 매치 상태가 MATCHED로 변경되어 요청 목록에서 제거됩니다.
+10. **스와이프 기록 조회**: 내가 보낸/받은 모든 스와이프 기록을 확인할 수 있습니다.
+11. **좋아요 추적**: 스와이프에 포함된 좋아요 여부와 시간을 추적할 수 있습니다.
+12. **채팅방 목록**: 사용자가 참여 중인 모든 채팅방을 조회할 수 있습니다.
 
 ---
 

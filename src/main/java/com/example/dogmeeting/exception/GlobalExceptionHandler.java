@@ -7,7 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,13 +48,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNSUPPORTED_MEDIA_TYPE); // 415 Unsupported Media Type
     }
 
-    /**
-     *  '리소스를 찾을 수 없음' 예외를 별도로 처리하여 404 상태 코드를 반환합니다.
-     */
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<String> handleNoResourceFoundException(NoResourceFoundException ex) {
-        // 원하는 커스텀 메시지나 에러 객체를 반환할 수 있습니다.
-        return new ResponseEntity<>("요청하신 리소스를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+
+    // 파라미터 타입 변환 오류 처리 (예: "undefined"를 Long으로 변환할 수 없는 경우)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        String paramName = ex.getName();
+        String paramValue = String.valueOf(ex.getValue());
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "Unknown";
+        
+        String message = String.format("파라미터 '%s'의 값 '%s'을(를) %s 타입으로 변환할 수 없습니다.", 
+                                       paramName, paramValue, requiredType);
+        
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST); // 400 Bad Request
     }
 
     // 그 외 예상치 못한 모든 예외 처리
