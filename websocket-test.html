@@ -35,7 +35,7 @@
                 log('✅ STOMP 연결 성공: ' + frame);
                 
                 // 채팅방 구독
-                stompClient.subscribe('/sub/chat/room/2', function(message) {
+                stompClient.subscribe('/sub/chat/room/1', function(message) {
                     log('📨 메시지 수신: ' + message.body);
                 });
                 
@@ -54,8 +54,8 @@
         function sendMessage() {
             if (stompClient !== null) {
                 const message = {
-                    chatroomId: 2,
-                    senderId: 24,
+                    chatroomId: 1,
+                    senderId: 2,
                     content: '브라우저에서 보낸 테스트 메시지!',
                     type: 'CHAT'
                 };
