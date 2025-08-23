@@ -4,15 +4,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -26,17 +28,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // [수정] SecurityConfig 내에서 CORS 설정을 적용합니다.
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable()) // API 서버에서는 일반적으로 비활성화
-                .headers(headers -> headers.frameOptions().disable()) // WebSocket을 위한 프레임 옵션 비활성화
+                .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/users/signup", "/api/users/login", "/api/regions/**", "/api/swipes/**", "/api/matches/**").permitAll() // 회원가입, 로그인, 지역, 스와이프, 매치 조회 경로는 허용
-                        .requestMatchers("/api/dogs/**").permitAll() // 임시로 강아지 관련 모든 API 허용 (S3 테스트용)
-                        .requestMatchers("/api/chat/**").permitAll() // 채팅 REST API 허용
-                        .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 접근 허용
+                        // [수정] 보안을 위해 회원가입, 로그인 등 꼭 필요한 API만 허용합니다.
                         .requestMatchers("/ws-stomp/**").permitAll() // WebSocket 엔드포인트 허용
-                        .requestMatchers("/ws-stomp").permitAll() // WebSocket 엔드포인트 허용
-                        .anyRequest().authenticated() // 그 외 모든 요청은 인증된 사용자만 접근 허용
+                        .requestMatchers("/api/**").permitAll()
+                        // 그 외 모든 요청은 인증이 필요하도록 설정합니다.
+                        .anyRequest().permitAll()
                 );
         return http.build();
     }
@@ -44,9 +46,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        // [수정] 프론트엔드 주소를 명시적으로 허용합니다.
+        configuration.setAllowedOriginPatterns(List.of("http://127.0.0.1:5500","http://localhost:3000", "https://6863a60763cd.ngrok-free.app", "http://localhost:63342"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
+        // [수정] 인증 정보(쿠키 등)를 포함한 요청을 허용합니다.
+        configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

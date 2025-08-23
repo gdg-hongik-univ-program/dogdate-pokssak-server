@@ -24,12 +24,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     List<User> findByCityAndGender(String city, String gender);
     
-    @Query("SELECT u FROM User u WHERE u.city = :city AND u.gender = :gender AND u.id != :excludeUserId")
+    @Query("SELECT u FROM User u WHERE u.city = :city AND u.gender != :gender AND u.id != :excludeUserId")
     List<User> findPotentialMatches(@Param("city") String city, 
                                    @Param("gender") String gender, 
                                    @Param("excludeUserId") Long excludeUserId);
     
-    @Query("SELECT u FROM User u WHERE u.city = :city AND u.district = :district AND u.gender = :gender AND u.id != :excludeUserId")
+    @Query("SELECT u FROM User u WHERE u.city = :city AND u.district = :district AND u.gender != :gender AND u.id != :excludeUserId")
     List<User> findPotentialMatchesInDistrict(@Param("city") String city,
                                              @Param("district") String district,
                                              @Param("gender") String gender, 

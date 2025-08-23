@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Long joinUser(UserJoinRequest request) {
+    public User joinUser(UserJoinRequest request) {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new PasswordMismatchException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
@@ -64,11 +64,11 @@ public class UserServiceImpl implements UserService {
                 .city(request.getCity())
                 .district(request.getDistrict())
                 .build();
-        
+
         newUser.encryptPassword(passwordEncoder);
         userRepository.save(newUser);
-        
-        return newUser.getId();
+
+        return newUser;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
         if (!user.checkPassword(passwordEncoder, password)) {
             throw new PasswordMismatchException("비밀번호가 일치하지 않습니다.");
         }
-        
+
         return user;
     }
 
@@ -101,9 +101,9 @@ public class UserServiceImpl implements UserService {
     public List<UserResponse> getPotentialMatches(Long userId) {
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        
+
         List<User> potentialMatches;
-        
+
         // district가 있으면 같은 district 내에서, 없으면 같은 city 내에서 매칭
         if (currentUser.getDistrict() != null && !currentUser.getDistrict().trim().isEmpty()) {
             potentialMatches = userRepository.findPotentialMatchesInDistrict(
@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
             potentialMatches = userRepository.findPotentialMatches(
                     currentUser.getCity(), currentUser.getGender(), userId);
         }
-        
+
         return potentialMatches.stream()
                 .map(UserResponse::from)
                 .collect(Collectors.toList());
@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
     public void updateUserProfile(Long userId, String nickname, String gender, String city, String district) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        
+
         user.updateProfile(nickname, gender, city, district);
     }
 
@@ -132,21 +132,21 @@ public class UserServiceImpl implements UserService {
     public UserProfileResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        
+
         // 강아지 정보 가져오기
         List<DogResponse> dogs = user.getDogs().stream()
                 .map(DogResponse::from)
                 .collect(Collectors.toList());
-        
+
         // 매칭 수 계산
         int matchCount = matchRepository.countByUser1IdOrUser2Id(userId, userId);
-        
+
         // 좋아요 수 계산 (새로운 랭킹 기준)
         int likeCount = swipeRepository.countLikesByUserId(userId);
-        
+
         // 랭킹 점수 계산 (좋아요 수 기반)
         int rankingScore = likeCount;  // 좋아요 수가 곧 랭킹 점수
-        
+
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .userId(user.getUserId())
@@ -166,10 +166,10 @@ public class UserServiceImpl implements UserService {
     public UserProfileResponse updateUserProfile(Long userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        
-        user.updateProfile(request.getNickname(), request.getGender(), 
-                          request.getCity(), request.getDistrict());
-        
+
+        user.updateProfile(request.getNickname(), request.getGender(),
+                request.getCity(), request.getDistrict());
+
         return getUserProfile(userId);
     }
 
@@ -177,17 +177,17 @@ public class UserServiceImpl implements UserService {
     public List<UserRankingResponse> getUserRanking(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         List<User> users = userRepository.findAll(pageable).getContent();
-        
+
         List<UserRankingResponse> rankings = users.stream()
                 .map(user -> {
                     int matchCount = matchRepository.countByUser1IdOrUser2Id(user.getId(), user.getId());
                     int likeCount = swipeRepository.countLikesByUserId(user.getId());
                     int rankingScore = likeCount;  // 좋아요 수가 곧 랭킹 점수
-                    
+
                     // 대표 강아지 정보
                     String mainDogPhotoUrl = user.getDogs().isEmpty() ? null : user.getDogs().get(0).getPhotoUrl();
                     String mainDogName = user.getDogs().isEmpty() ? null : user.getDogs().get(0).getName();
-                    
+
                     return UserRankingResponse.builder()
                             .id(user.getId())
                             .nickname(user.getNickname())
@@ -201,7 +201,7 @@ public class UserServiceImpl implements UserService {
                 })
                 .sorted((a, b) -> Integer.compare(b.getRankingScore(), a.getRankingScore()))
                 .collect(Collectors.toList());
-        
+
         // 순위 부여
         return IntStream.range(0, rankings.size())
                 .mapToObj(i -> UserRankingResponse.builder()
@@ -222,4 +222,4 @@ public class UserServiceImpl implements UserService {
     public UserProfileResponse getUserDetailProfile(Long targetUserId) {
         return getUserProfile(targetUserId);
     }
-} 
+}

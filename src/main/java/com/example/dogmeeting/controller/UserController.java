@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.util.List;
 
@@ -21,16 +23,29 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@Valid @RequestBody UserJoinRequest request) {
-        userService.joinUser(request);
-        return new ResponseEntity<>("회원가입이 성공적으로 완료되었습니다.", HttpStatus.CREATED);
+    public ResponseEntity<UserResponse> signup(@Valid @RequestBody UserJoinRequest request) {
+        User newUser = userService.joinUser(request);
+        UserResponse userResponse = UserResponse.from(newUser);
+        return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody UserLoginRequest request) {
+    public ResponseEntity<Map<String, Long>> login(@Valid @RequestBody UserLoginRequest request) {
+        // 1. 로그인 서비스를 호출하여 로그인된 User 객체를 받아옵니다.
         User loggedInUser = userService.loginUser(request.getUserId(), request.getPassword());
-        return new ResponseEntity<>("로그인 성공! 환영합니다, " + loggedInUser.getNickname() + "님!", HttpStatus.OK);
+
+        // 2. 받아온 User 객체에서 숫자 ID(Long 타입)를 추출합니다.
+        Long userId = loggedInUser.getId();
+
+        // 3. Map 객체를 생성하여 userId를 JSON 형식으로 만듭니다.
+        Map<String, Long> response = new HashMap<>();
+        response.put("userId", userId);
+
+        // 4. Map 객체를 ResponseEntity에 담아 성공(OK) 상태와 함께 반환합니다.
+        // Spring Boot가 Map을 자동으로 {"userId": 1} 형태의 JSON으로 변환해줍니다.
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {

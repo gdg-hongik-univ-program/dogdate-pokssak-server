@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebSocket STOMP Test</title>
+    <meta charset="UTF-8">
+    <title>WebSocket STOMP Test (SockJS)</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
@@ -27,8 +28,7 @@
         }
         
         function connect() {
-            // 순수 WebSocket 연결 (SockJS 없이)
-            const socket = new WebSocket('ws://localhost:8080/ws-stomp');
+            const socket = new SockJS('http://localhost:8080/ws-stomp');
             stompClient = Stomp.over(socket);
             
             stompClient.connect({}, function(frame) {

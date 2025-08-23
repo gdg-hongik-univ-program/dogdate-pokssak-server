@@ -31,6 +31,9 @@ public class Dog {
     @Column(nullable = false)
     private Integer age;
 
+    @Column(nullable = false)
+    private String gender;
+
     @Column(length = 500)
     private String description;
 
@@ -40,10 +43,11 @@ public class Dog {
     @OneToMany(mappedBy = "dog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DogTitle> dogTitles;
 
-    public void updateInfo(String name, String breed, Integer age, String description) {
+    public void updateInfo(String name, String breed, Integer age, String gender, String description) {
         this.name = name;
         this.breed = breed;
         this.age = age;
+        this.gender = gender;
         this.description = description;
     }
 

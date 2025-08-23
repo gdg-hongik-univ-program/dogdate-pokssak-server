@@ -2,6 +2,7 @@ package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.ChatMessageDto;
 import com.example.dogmeeting.dto.ChatMessageResponse;
+import com.example.dogmeeting.dto.ChatRoomResponse;
 import com.example.dogmeeting.entity.ChatMessage;
 import com.example.dogmeeting.entity.ChatRoom;
 import com.example.dogmeeting.entity.Match;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,26 +37,28 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public ChatRoom createChatRoom(Long matchId) {
+    public ChatRoomResponse createChatRoom(Long matchId) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("매치를 찾을 수 없습니다."));
 
         // 이미 채팅방이 있는지 확인
         ChatRoom existingChatRoom = chatRoomRepository.findByMatchId(matchId);
         if (existingChatRoom != null) {
-            return existingChatRoom;
+            return ChatRoomResponse.from(existingChatRoom);
         }
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .match(match)
                 .build();
 
-        return chatRoomRepository.save(chatRoom);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        return ChatRoomResponse.from(savedChatRoom);
     }
 
     @Override
-    public ChatRoom findChatRoomByMatchId(Long matchId) {
-        return chatRoomRepository.findByMatchId(matchId);
+    public ChatRoomResponse findChatRoomByMatchId(Long matchId) {
+        ChatRoom chatRoom = chatRoomRepository.findByMatchId(matchId);
+        return chatRoom != null ? ChatRoomResponse.from(chatRoom) : null;
     }
 
     @Override
@@ -145,7 +149,7 @@ public class ChatServiceImpl implements ChatService {
 
     private void validateChatRoomAccess(ChatRoom chatRoom, Long userId) {
         Match match = chatRoom.getMatch();
-        boolean hasAccess = match.getUser1().getId().equals(userId) || 
+        boolean hasAccess = match.getUser1().getId().equals(userId) ||
                            match.getUser2().getId().equals(userId);
 
         if (!hasAccess) {
@@ -163,5 +167,25 @@ public class ChatServiceImpl implements ChatService {
                 .sentAt(message.getSentAt())
                 .read(message.getRead())
                 .build();
+    }
+
+    @Override
+    public List<ChatRoomResponse> getUserChatRooms(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Match> userMatches = matchRepository.findByUser(user);
+        List<ChatRoom> chatRooms = new ArrayList<>();
+
+        for (Match match : userMatches) {
+            ChatRoom chatRoom = chatRoomRepository.findByMatchId(match.getId());
+            if (chatRoom != null) {
+                chatRooms.add(chatRoom);
+            }
+        }
+
+        return chatRooms.stream()
+                .map(ChatRoomResponse::from)
+                .collect(Collectors.toList());
     }
 }

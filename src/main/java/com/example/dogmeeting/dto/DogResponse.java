@@ -17,6 +17,7 @@ public class DogResponse {
     private String name;
     private String breed;
     private Integer age;
+    private String gender; // Added this line
     private String description;
     private String photoUrl;
     
@@ -27,6 +28,7 @@ public class DogResponse {
                 .name(dog.getName())
                 .breed(dog.getBreed())
                 .age(dog.getAge())
+                .gender(dog.getGender()) // Added this line
                 .description(dog.getDescription())
                 .photoUrl(dog.getPhotoUrl())
                 .build();

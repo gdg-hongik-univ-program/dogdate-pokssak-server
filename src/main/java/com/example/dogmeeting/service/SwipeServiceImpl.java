@@ -1,6 +1,9 @@
 package com.example.dogmeeting.service;
 
 import com.example.dogmeeting.dto.MatchResponse;
+
+import com.example.dogmeeting.dto.SwipeResponse;
+
 import com.example.dogmeeting.entity.Match;
 import com.example.dogmeeting.entity.Swipe;
 import com.example.dogmeeting.entity.User;
@@ -14,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -55,7 +60,7 @@ public class SwipeServiceImpl implements SwipeService {
             Match match = Match.builder()
                     .user1(fromUser)
                     .user2(toUser)
-                    .status("ACTIVE")
+                    .status("MATCHED")  // 매칭 완료 상태로 변경
                     .build();
             matchRepository.save(match);
 
@@ -115,5 +120,29 @@ public class SwipeServiceImpl implements SwipeService {
 
         Optional<Swipe> swipe = swipeRepository.findByFromUserAndToUser(fromUser, toUser);
         return swipe.map(Swipe::getLike).orElse(false);
+    }
+
+    @Override
+    public List<SwipeResponse> getSentSwipes(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Swipe> sentSwipes = swipeRepository.findByFromUser(user);
+        return sentSwipes.stream()
+                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(), swipe.getToUser().getId()).isPresent())
+                .map(SwipeResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SwipeResponse> getReceivedSwipes(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<Swipe> receivedSwipes = swipeRepository.findByToUser(user);
+        return receivedSwipes.stream()
+                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(), swipe.getToUser().getId()).isPresent())
+                .map(SwipeResponse::from)
+                .collect(Collectors.toList());
     }
 } 

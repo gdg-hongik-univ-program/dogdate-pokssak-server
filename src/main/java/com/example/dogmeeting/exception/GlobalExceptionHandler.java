@@ -2,10 +2,12 @@ package com.example.dogmeeting.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +41,25 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage()));
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<String> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNSUPPORTED_MEDIA_TYPE); // 415 Unsupported Media Type
+    }
+
+
+    // 파라미터 타입 변환 오류 처리 (예: "undefined"를 Long으로 변환할 수 없는 경우)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        String paramName = ex.getName();
+        String paramValue = String.valueOf(ex.getValue());
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "Unknown";
+        
+        String message = String.format("파라미터 '%s'의 값 '%s'을(를) %s 타입으로 변환할 수 없습니다.", 
+                                       paramName, paramValue, requiredType);
+        
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST); // 400 Bad Request
     }
 
     // 그 외 예상치 못한 모든 예외 처리
