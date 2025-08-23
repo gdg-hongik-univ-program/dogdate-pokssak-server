@@ -58,4 +58,10 @@ public class ChatRestController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/users/{userId}/chatrooms")
+    public ResponseEntity<List<ChatRoomResponse>> getUserChatRooms(@PathVariable Long userId) {
+        List<ChatRoomResponse> chatRooms = chatService.getUserChatRooms(userId);
+        return ResponseEntity.ok(chatRooms);
+    }
 }
