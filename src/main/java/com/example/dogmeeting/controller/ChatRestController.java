@@ -44,12 +44,6 @@ public class ChatRestController {
         return ResponseEntity.ok("메시지를 읽음 처리했습니다.");
     }
 
-    @PostMapping("/room/match/{matchId}")
-    public ResponseEntity<ChatRoomResponse> createChatRoom(@PathVariable Long matchId) {
-        ChatRoomResponse chatRoom = chatService.createChatRoom(matchId);
-        return ResponseEntity.ok(chatRoom);
-    }
-
     @GetMapping("/room/match/{matchId}")
     public ResponseEntity<ChatRoomResponse> getChatRoomByMatch(@PathVariable Long matchId) {
         ChatRoomResponse chatRoom = chatService.findChatRoomByMatchId(matchId);
