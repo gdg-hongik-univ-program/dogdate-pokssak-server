@@ -6,6 +6,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +46,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<String> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNSUPPORTED_MEDIA_TYPE); // 415 Unsupported Media Type
+    }
+
+    /**
+     *  '리소스를 찾을 수 없음' 예외를 별도로 처리하여 404 상태 코드를 반환합니다.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<String> handleNoResourceFoundException(NoResourceFoundException ex) {
+        // 원하는 커스텀 메시지나 에러 객체를 반환할 수 있습니다.
+        return new ResponseEntity<>("요청하신 리소스를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
     }
 
     // 그 외 예상치 못한 모든 예외 처리

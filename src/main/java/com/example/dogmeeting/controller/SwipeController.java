@@ -2,11 +2,14 @@ package com.example.dogmeeting.controller;
 
 import com.example.dogmeeting.dto.MatchResponse;
 import com.example.dogmeeting.dto.SwipeRequest;
+import com.example.dogmeeting.dto.UserResponse;
 import com.example.dogmeeting.service.SwipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/swipes")
@@ -60,5 +63,11 @@ public class SwipeController {
             @PathVariable Long toUserId) {
         boolean hasSwiped = swipeService.hasAlreadySwiped(fromUserId, toUserId);
         return ResponseEntity.ok(hasSwiped);
+    }
+
+    @GetMapping("/received/{userId}")
+    public ResponseEntity<List<UserResponse>> getReceivedSwipes(@PathVariable Long userId) {
+        List<UserResponse> receivedSwipes = swipeService.getReceivedSwipes(userId);
+        return ResponseEntity.ok(receivedSwipes);
     }
 } 
