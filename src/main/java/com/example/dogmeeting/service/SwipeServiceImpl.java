@@ -129,6 +129,7 @@ public class SwipeServiceImpl implements SwipeService {
 
         List<Swipe> sentSwipes = swipeRepository.findByFromUser(user);
         return sentSwipes.stream()
+                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(), swipe.getToUser().getId()).isPresent())
                 .map(SwipeResponse::from)
                 .collect(Collectors.toList());
     }
@@ -140,6 +141,7 @@ public class SwipeServiceImpl implements SwipeService {
 
         List<Swipe> receivedSwipes = swipeRepository.findByToUser(user);
         return receivedSwipes.stream()
+                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(), swipe.getToUser().getId()).isPresent())
                 .map(SwipeResponse::from)
                 .collect(Collectors.toList());
     }
