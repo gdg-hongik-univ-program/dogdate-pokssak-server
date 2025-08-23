@@ -147,20 +147,9 @@ public class ChatServiceImpl implements ChatService {
         return chatMessageRepository.countByChatRoomIdAndSenderIdNotAndReadFalse(chatroomId, userId);
     }
 
-    @Override
-    public List<ChatRoomResponse> getUserChatRooms(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException("사용자를 찾을 수 없습니다.");
-        }
-        List<ChatRoom> chatRooms = chatRoomRepository.findByUserId(userId);
-        return chatRooms.stream()
-                .map(ChatRoomResponse::from)
-                .collect(Collectors.toList());
-    }
-
     private void validateChatRoomAccess(ChatRoom chatRoom, Long userId) {
         Match match = chatRoom.getMatch();
-        boolean hasAccess = match.getUser1().getId().equals(userId) || 
+        boolean hasAccess = match.getUser1().getId().equals(userId) ||
                            match.getUser2().getId().equals(userId);
 
         if (!hasAccess) {
@@ -187,7 +176,7 @@ public class ChatServiceImpl implements ChatService {
 
         List<Match> userMatches = matchRepository.findByUser(user);
         List<ChatRoom> chatRooms = new ArrayList<>();
-        
+
         for (Match match : userMatches) {
             ChatRoom chatRoom = chatRoomRepository.findByMatchId(match.getId());
             if (chatRoom != null) {
