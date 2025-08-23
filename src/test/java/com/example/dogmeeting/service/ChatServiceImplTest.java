@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -102,6 +103,7 @@ class ChatServiceImplTest {
     void createChatRoom_Success() {
         // Given
         when(matchRepository.findById(1L)).thenReturn(Optional.of(match));
+        // [수정] findByMatchId가 ChatRoom 객체를 반환한다고 가정하고, 없는 경우 null을 반환하도록 설정합니다.
         when(chatRoomRepository.findByMatchId(1L)).thenReturn(null);
         when(chatRoomRepository.save(any(ChatRoom.class))).thenReturn(chatRoom);
 
@@ -119,6 +121,7 @@ class ChatServiceImplTest {
     void createChatRoom_AlreadyExists() {
         // Given
         when(matchRepository.findById(1L)).thenReturn(Optional.of(match));
+        // [수정] findByMatchId가 ChatRoom 객체를 반환한다고 가정하고, 존재하는 경우 chatRoom 객체를 직접 반환하도록 설정합니다.
         when(chatRoomRepository.findByMatchId(1L)).thenReturn(chatRoom);
 
         // When
@@ -166,10 +169,17 @@ class ChatServiceImplTest {
 
         // Then
         verify(chatMessageRepository).save(any(ChatMessage.class));
+
+        // ArgumentCaptor를 사용하여 실제 전송된 DTO를 캡처하고 검증
+        ArgumentCaptor<ChatMessageDto> captor = ArgumentCaptor.forClass(ChatMessageDto.class);
         verify(messagingTemplate).convertAndSend(
                 eq("/sub/chat/room/1"),
-                any(ChatMessageDto.class)
+                captor.capture()
         );
+
+        ChatMessageDto capturedDto = captor.getValue();
+        assertThat(capturedDto.getContent()).isEqualTo("테스트 메시지");
+        assertThat(capturedDto.getSenderId()).isEqualTo(1L);
     }
 
     @Test
@@ -206,12 +216,6 @@ class ChatServiceImplTest {
     @DisplayName("권한 없는 채팅방 접근 테스트")
     void validateChatRoomAccess_Unauthorized() {
         // Given
-        User unauthorizedUser = User.builder()
-                .id(3L)
-                .userId("user3")
-                .nickname("사용자3")
-                .build();
-
         when(chatRoomRepository.findById(1L)).thenReturn(Optional.of(chatRoom));
 
         // When & Then
