@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.5.3'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
+buildDir = 'C:/Users/nsh67/dev/.gradle-builds/dogdate-pokssak-server'
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
