@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // [수정] 프론트엔드 주소를 명시적으로 허용합니다.
-        configuration.setAllowedOriginPatterns(List.of("http://127.0.0.1:5500","http://localhost:3000", " https://74be1199df6c.ngrok-free.app", "http://localhost:63342"));
+        configuration.setAllowedOriginPatterns(List.of("http://127.0.0.1:5500","http://localhost:3000", "https://*.ngrok-free.app" , "http://localhost:63342","https://dogdate-pokssak-cbg14s2mv-seojuns-projects-671b3866.vercel.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         // [수정] 인증 정보(쿠키 등)를 포함한 요청을 허용합니다.
