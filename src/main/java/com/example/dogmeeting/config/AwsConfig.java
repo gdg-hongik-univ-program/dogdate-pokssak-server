@@ -13,22 +13,30 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 @Configuration
 public class AwsConfig {
 
+    @Value("${spring.cloud.aws.credentials.access-key}")
+    private String accessKey;
+
+    @Value("${spring.cloud.aws.credentials.secret-key}")
+    private String secretKey;
+
     @Value("${spring.cloud.aws.region.static}")
     private String region;
 
     @Bean
     public S3Client s3Client() {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         return S3Client.builder()
                 .region(Region.of(region))
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .build();
     }
 
     @Bean
     public S3Presigner s3Presigner() {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         return S3Presigner.builder()
                 .region(Region.of(region))
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .build();
     }
 }
