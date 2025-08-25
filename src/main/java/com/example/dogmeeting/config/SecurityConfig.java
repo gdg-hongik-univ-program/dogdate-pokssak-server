@@ -47,7 +47,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // [수정] 프론트엔드 주소를 명시적으로 허용합니다.
-        configuration.setAllowedOriginPatterns(List.of("http://127.0.0.1:5500","http://localhost:3000", "https://6863a60763cd.ngrok-free.app", "http://localhost:63342"));
+        configuration.setAllowedOriginPatterns(List.of("http://127.0.0.1:5500","http://localhost:3000", " https://74be1199df6c.ngrok-free.app", "http://localhost:63342"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         // [수정] 인증 정보(쿠키 등)를 포함한 요청을 허용합니다.
