@@ -47,8 +47,11 @@ public interface SwipeRepository extends JpaRepository<Swipe, Long> {
            "WHERE s.fromUser.id = :fromUserId AND s.toUser.id = :toUserId")
     boolean existsByFromUserIdAndToUserId(@Param("fromUserId") Long fromUserId, 
                                          @Param("toUserId") Long toUserId);
-    
+
+    boolean existsByFromUserIdAndToUserIdAndSwipedAtIsNotNull(Long fromUserId, Long toUserId);
+
     // 사용자가 받은 좋아요 수 (특정 조건)
     @Query("SELECT COUNT(s) FROM Swipe s WHERE s.toUser = :toUser AND s.like = :like")
     int countByToUserAndLike(@Param("toUser") User toUser, @Param("like") boolean like);
-} 
+}
+ 

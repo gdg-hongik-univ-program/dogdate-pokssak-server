@@ -103,6 +103,7 @@ dogInfo={
   "name": "멍멍이",
   "breed": "골든리트리버",
   "age": 3,
+  "gender":male,
   "description": "착하고 순한 강아지입니다.",
   "photoUrl": null
 }

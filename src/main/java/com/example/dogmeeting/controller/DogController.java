@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +26,7 @@ public class DogController {
     private final DogService dogService;
     private final FileUploadService fileUploadService; // This is needed for uploadDogImage
 
-    @PostMapping("/users/{userId}")
+    @PostMapping(value = "/users/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Long>> createDog(
             @PathVariable Long userId,
             @Valid @RequestPart("dogInfo") DogCreateRequest request,
@@ -53,7 +54,7 @@ public class DogController {
         return ResponseEntity.ok(dogs);
     }
 
-    @PutMapping("/{dogId}")
+    @PutMapping(value = "/{dogId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> updateDog(
             @PathVariable Long dogId,
             @Valid @RequestPart("dogInfo") DogCreateRequest request,
@@ -71,7 +72,7 @@ public class DogController {
 
 
     // 강아지 이미지 업로드/변경
-    @PostMapping("/{dogId}/image")
+    @PostMapping(value = "/{dogId}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadDogImage(
             @PathVariable Long dogId,
             @RequestParam("userId") Long userId,

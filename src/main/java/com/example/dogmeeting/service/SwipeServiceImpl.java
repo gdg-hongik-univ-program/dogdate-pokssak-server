@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public class SwipeServiceImpl implements SwipeService {
                 .orElseThrow(() -> new UserNotFoundException("대상 사용자를 찾을 수 없습니다."));
 
         // 이미 스와이프했는지 확인
-        if (swipeRepository.existsByFromUserIdAndToUserId(fromUserId, toUserId)) {
+        if (swipeRepository.existsByFromUserIdAndToUserIdAndSwipedAtIsNotNull(fromUserId, toUserId)) {
             throw new IllegalStateException("이미 스와이프한 사용자입니다.");
         }
 
@@ -50,10 +51,11 @@ public class SwipeServiceImpl implements SwipeService {
                 .fromUser(fromUser)
                 .toUser(toUser)
                 .build();
+        swipe.setSwipedAt(LocalDateTime.now());
         swipeRepository.save(swipe);
 
         // 상대방도 나를 스와이프했는지 확인
-        boolean mutualSwipe = swipeRepository.existsByFromUserIdAndToUserId(toUserId, fromUserId);
+        boolean mutualSwipe = swipeRepository.existsByFromUserIdAndToUserIdAndSwipedAtIsNotNull(toUserId, fromUserId);
         
         if (mutualSwipe) {
             // 매칭 생성
@@ -78,7 +80,7 @@ public class SwipeServiceImpl implements SwipeService {
 
     @Override
     public boolean hasAlreadySwiped(Long fromUserId, Long toUserId) {
-        return swipeRepository.existsByFromUserIdAndToUserId(fromUserId, toUserId);
+        return swipeRepository.existsByFromUserIdAndToUserIdAndSwipedAtIsNotNull(fromUserId, toUserId);
     }
 
     // 좋아요 관련 메서드들 구현
@@ -103,9 +105,8 @@ public class SwipeServiceImpl implements SwipeService {
             Swipe newSwipe = Swipe.builder()
                     .fromUser(fromUser)
                     .toUser(toUser)
-                    .like(true)
                     .build();
-            newSwipe.setLike(true); // 좋아요 시간 설정
+            newSwipe.setLike(true); // 좋아요와 likedAt 설정
             swipeRepository.save(newSwipe);
             return true;
         }
@@ -129,7 +130,8 @@ public class SwipeServiceImpl implements SwipeService {
 
         List<Swipe> sentSwipes = swipeRepository.findByFromUser(user);
         return sentSwipes.stream()
-                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(), swipe.getToUser().getId()).isPresent())
+                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(),
+                        swipe.getToUser().getId()).isPresent())
                 .map(SwipeResponse::from)
                 .collect(Collectors.toList());
     }
@@ -141,8 +143,10 @@ public class SwipeServiceImpl implements SwipeService {
 
         List<Swipe> receivedSwipes = swipeRepository.findByToUser(user);
         return receivedSwipes.stream()
-                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(), swipe.getToUser().getId()).isPresent())
+                .filter(swipe -> !matchRepository.findByUsers(swipe.getFromUser().getId(),
+                        swipe.getToUser().getId()).isPresent())
                 .map(SwipeResponse::from)
                 .collect(Collectors.toList());
     }
-} 
+}
+ 

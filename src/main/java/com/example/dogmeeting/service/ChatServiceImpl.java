@@ -14,6 +14,8 @@ import com.example.dogmeeting.repository.MatchRepository;
 import com.example.dogmeeting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -187,5 +189,19 @@ public class ChatServiceImpl implements ChatService {
         return chatRooms.stream()
                 .map(ChatRoomResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ChatMessageResponse getLastMessage(Long chatroomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatroomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        Page<ChatMessage> lastMessagePage = chatMessageRepository.findByChatRoomOrderBySentAtDesc(chatRoom, PageRequest.of(0, 1));
+        if (lastMessagePage.hasContent()) {
+            ChatMessage lastMessage = lastMessagePage.getContent().get(0);
+            return convertToResponse(lastMessage);
+        } else {
+            return null; // 채팅 메시지가 없는 경우
+        }
     }
 }
