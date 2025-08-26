@@ -58,4 +58,14 @@ public class ChatRestController {
         List<ChatRoomResponse> chatRooms = chatService.getUserChatRooms(userId);
         return ResponseEntity.ok(chatRooms);
     }
+
+    @GetMapping("/{chatroomId}/last-message")
+    public ResponseEntity<ChatMessageResponse> getLastMessage(
+            @PathVariable Long chatroomId) {
+        ChatMessageResponse lastMessage = chatService.getLastMessage(chatroomId);
+        if (lastMessage != null) {
+            return ResponseEntity.ok(lastMessage);
+        }
+        return ResponseEntity.noContent().build(); // 메시지가 없을 경우
+    }
 }

@@ -26,7 +26,7 @@ public class Swipe {
     @JoinColumn(name = "to_user_id", nullable = false)
     private User toUser;
 
-    @Column(name = "swiped_at", nullable = false)
+    @Column(name = "swiped_at")
     private LocalDateTime swipedAt;
 
     @Column(name = "is_like", nullable = false)
@@ -36,13 +36,6 @@ public class Swipe {
     @Column(name = "liked_at")
     private LocalDateTime likeAt;   // 좋아요 누른 시간 (선택적)
 
-    @PrePersist
-    protected void onCreate() {
-        if (swipedAt == null) {
-            swipedAt = LocalDateTime.now();
-        }
-    }
-    
     // 좋아요 토글 메서드
     public void toggleLike() {
         this.like = !this.like;
@@ -54,4 +47,9 @@ public class Swipe {
         this.like = like;
         this.likeAt = like ? LocalDateTime.now() : null;
     }
-} 
+
+    public void setSwipedAt(LocalDateTime swipedAt) {
+        this.swipedAt = swipedAt;
+    }
+}
+ 

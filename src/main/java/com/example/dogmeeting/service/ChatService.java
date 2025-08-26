@@ -21,4 +21,6 @@ public interface ChatService {
     int getUnreadMessageCount(Long chatroomId, Long userId);
 
     List<ChatRoomResponse> getUserChatRooms(Long userId);
+
+    ChatMessageResponse getLastMessage(Long chatroomId);
 }
