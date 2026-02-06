@@ -7,13 +7,13 @@ import com.example.dogmeeting.dto.SwipeResponse;
 import com.example.dogmeeting.entity.Match;
 import com.example.dogmeeting.entity.Swipe;
 import com.example.dogmeeting.entity.User;
+import com.example.dogmeeting.event.MatchSuccessEvent;
 import com.example.dogmeeting.exception.UserNotFoundException;
-import com.example.dogmeeting.entity.ChatRoom;
-import com.example.dogmeeting.repository.ChatRoomRepository;
 import com.example.dogmeeting.repository.MatchRepository;
 import com.example.dogmeeting.repository.SwipeRepository;
 import com.example.dogmeeting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +30,7 @@ public class SwipeServiceImpl implements SwipeService {
     private final SwipeRepository swipeRepository;
     private final UserRepository userRepository;
     private final MatchRepository matchRepository;
-    private final ChatRoomRepository chatRoomRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -66,12 +66,9 @@ public class SwipeServiceImpl implements SwipeService {
                     .build();
             matchRepository.save(match);
 
-            // 채팅방 생성
-            ChatRoom chatRoom = ChatRoom.builder()
-                    .match(match)
-                    .build();
-            chatRoomRepository.save(chatRoom);
-            
+            // 매칭 성사 이벤트 발행 → ChatEventListener가 채팅방 자동 생성
+            eventPublisher.publishEvent(new MatchSuccessEvent(match.getId()));
+
             return MatchResponse.from(match);
         }
         
